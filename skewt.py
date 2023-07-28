@@ -11,7 +11,6 @@ import metpy.calc as mpcalc
 from metpy.cbook import get_test_data
 from metpy.plots import add_metpy_logo, Hodograph, SkewT
 from metpy.units import units
-from metpy.calc import parcel_profile
 
 import datetime
 import requests
@@ -22,11 +21,11 @@ DATE=(datetime.date.today() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
 TIME='23:00:00'
 # http://weather.uwyo.edu/cgi-bin/bufrraob.py?datetime=2023-07-20%2023:00:00&id=10548&type=TEXT:CSV
 URL=f'http://weather.uwyo.edu/cgi-bin/bufrraob.py?datetime={DATE}%20{TIME}&id={STATION}&type=TEXT:CSV'
-
 print(URL)
 
-result = requests.get(URL)
-RAW_DATA_LINES=result.content.decode('UTF-8').splitlines()
+#result = requests.get(URL)
+#RAW_DATA_LINES=result.content.decode('UTF-8').splitlines()
+RAW_DATA_LINES= open('data.csv').readlines()
 
 p = []
 T = []
@@ -55,7 +54,12 @@ wind_speed = wind_speed * units.knots
 wind_dir = wind_dir * units.degrees
 u, v = mpcalc.wind_components(wind_speed, wind_dir)
 
-ground_parcel = parcel_profile(p, T[0], Td[0])
+ground_parcel= mpcalc.parcel_profile(p, T[0], Td[0])
+ccl = mpcalc.ccl(p,T,Td)
+lcl = mpcalc.lcl(p[0],T[0],Td[0])
+
+ccl_ground=mpcalc.dry_lapse(p[:1], ccl[1], ccl[0])
+ccl_ground_parcel= mpcalc.parcel_profile(p, ccl_ground[0], Td[0])
 
 # Create a new figure. The dimensions here give a good aspect ratio
 fig = plt.figure(figsize=(9, 9))
@@ -69,9 +73,13 @@ skew = SkewT(fig, rotation=45, subplot=gs[:, :])
 skew.plot(p, T, 'r')
 skew.plot(p, Td, 'g')
 skew.plot(p, ground_parcel, 'b')
+skew.plot(p, ccl_ground_parcel, 'y')
 
 barb_div = int(len(p)/20)
 skew.plot_barbs(p[::barb_div], u[::barb_div], v[::barb_div])
+
+skew.plot(lcl[0], lcl[1], 'o', markerfacecolor='black')
+skew.plot(ccl[0], ccl[1], 'o', markerfacecolor='red')
 
 skew.shade_cape(p,T,ground_parcel)
 skew.shade_cin(p,T,ground_parcel)
