@@ -23,9 +23,9 @@ TIME='23:00:00'
 URL=f'http://weather.uwyo.edu/cgi-bin/bufrraob.py?datetime={DATE}%20{TIME}&id={STATION}&type=TEXT:CSV'
 print(URL)
 
-#result = requests.get(URL)
-#RAW_DATA_LINES=result.content.decode('UTF-8').splitlines()
-RAW_DATA_LINES= open('data.csv').readlines()
+result = requests.get(URL)
+RAW_DATA_LINES=result.content.decode('UTF-8').splitlines()
+#RAW_DATA_LINES= open('data.csv').readlines()
 
 p = []
 T = []
@@ -38,6 +38,9 @@ next(csvreader) # Skip header
 for row in csvreader:
     if sum(map(lambda s : len(s.strip()) == 0, row)):
         # skip any line with empty values
+        continue
+
+    if float(row[3]) in p: # Skip double p entries
         continue
 
     p.append(float(row[3]))
