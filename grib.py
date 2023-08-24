@@ -16,15 +16,34 @@ target_lon='10.0646952'
 
 grib = pygrib.open('dwd_icon-d2/combined.grib2')
 
+# GRIB-Objekt wichtige attribute:
+# analDate
+# validDate
+# units
+# level
+# typeOfLevel
+# name
+# shortName
 
 for grb in grib:
-    print(grb)
+    #print(grb)
     vals = grb.values
 
     lats, lons = grb.latlons()
 
+    for k in grb.keys():
+        print(k)
+
+    print(grb.analDate)
+    print(grb.validDate)
+    print(grb.units)
+    print(grb.typeOfLevel)
+    break
+
+    # TODO Data in xarray?
+
     print(grb.name)
-    #print(grb.level)
+    print(grb.level)
 
     #print('lats min/max: ', lats.shape, lats.max(), lats.min())
     #print('lons min/max: ', lons.shape, lons.max(), lons.min())

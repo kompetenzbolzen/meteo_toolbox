@@ -1,2 +1,4 @@
 metpy
 pygrib
+xarray
+cfgrib
