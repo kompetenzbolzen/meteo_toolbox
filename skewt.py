@@ -1,6 +1,8 @@
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 
+import numpy as np
+
 import metpy.calc as mpcalc
 from metpy.cbook import get_test_data
 from metpy.plots import add_metpy_logo, Hodograph, SkewT
@@ -11,6 +13,8 @@ class Skewt:
         self._p = p
         self._T = T
         self._Td = Td
+
+        self._info_lines = []
 
 
         # Create a new figure. The dimensions here give a good aspect ratio
@@ -46,20 +50,55 @@ class Skewt:
         plt.ylabel('$m/s$')
         self._skew.plot_barbs(self._p, u, v)
 
-    def addInfo(self, lines):
-        # TODO
+    def addInfo(self, line):
+        self._info_lines.append(line)
+
+    def addAnalysis(self, analysis='ccl', shade=False):
+        f = {'ccl': self._cclAnalysis, 'lcl': self._lclAnalysis}
+
+        lvl, parcel = f[analysis]()
+
+        self._skew.plot(self._p, parcel, 'y')
+        self._skew.plot(lvl[0], lvl[1], 'o', markerfacecolor='red', linewidth=1)
+
+        cape, cin = mpcalc.cape_cin(self._p, self._T, self._Td, parcel)
+
+        self.addInfo(f'CAPE {int(cape.magnitude)} $J/kg$ CIN {int(cin.magnitude)} $J/kg$')
+
+        if shade:
+            self._skew.shade_cape(self._p,self._T,parcel)
+            self._skew.shade_cin(self._p,self._T,parcel)
+
+    def _cclAnalysis(self):
+        #p = np.arange(max(self._p).magnitude, min(self._p).magnitude, -50) * units.hPa
+
+        ccl = mpcalc.ccl(self._p,self._T,self._Td)
+        ccl_ground=mpcalc.dry_lapse(self._p[:1], ccl[1], ccl[0])
+        ccl_ground_parcel= mpcalc.parcel_profile(self._p, ccl_ground[0], self._Td[0])
+
+        return (ccl, ccl_ground_parcel)
+
+    def _lclAnalysis(self):
+        ground_parcel= mpcalc.parcel_profile(self._p, self._T[0], self._Td[0])
+        lcl = mpcalc.lcl(self._p[0],self._T[0],self._Td[0])
+
+        return (lcl, ground_parcel)
+
+    def _buildInfoBox(self):
         ax = self._fig.add_subplot(self._gs[1,-1])
-        ax.text(0, 0, lines, ha='left', va='center', size=12)
+        ax.text(0, 0, '\n'.join(self._info_lines), ha='left', va='center',
+                size=10, fontfamily='monospace')
         ax.axis("off")
 
-
     def plot(self, filename=None):
+        self._buildInfoBox()
+
         # Add the relevant special lines
         #self._skew.ax.set_ylim(max(self._p), min(self._p))
         self._skew.ax.set_ylim(1000, 100)
-        self._skew.plot_dry_adiabats()
-        self._skew.plot_moist_adiabats()
-        self._skew.plot_mixing_lines()
+        self._skew.plot_dry_adiabats(linewidth=1)
+        self._skew.plot_moist_adiabats(linewidth=1)
+        self._skew.plot_mixing_lines(linewidth=1)
 
         # Good bounds for aspect ratio
         self._skew.ax.set_xlim(-30, 40)
