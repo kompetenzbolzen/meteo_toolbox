@@ -45,7 +45,11 @@ done
 echo Done downloading. Decompressing...
 
 for F in $OUTDIR/*.grib2.bz2; do
-	bzip2 -df "$F"
+	while [ $(pgrep -c -P$$) -gt 5 ]; do
+		sleep 1
+	done
+
+	bzip2 -df "$F" &
 done
 
 rm -f $OUTDIR/combined.grib2
