@@ -61,9 +61,15 @@ class Skewt:
         self._skew.plot(self._p, parcel, 'y')
         self._skew.plot(lvl[0], lvl[1], 'o', markerfacecolor='red', linewidth=1)
 
-        cape, cin = mpcalc.cape_cin(self._p, self._T, self._Td, parcel)
-
-        self.addInfo(f'CAPE {int(cape.magnitude)} $J/kg$ CIN {int(cin.magnitude)} $J/kg$')
+        # TODO why exception on cape_cin()?
+        # ValueError: zero-size array to reduction operation minimum which has no identity
+        # https://github.com/Unidata/MetPy/pull/3132
+        try:
+            cape, cin = mpcalc.cape_cin(self._p, self._T, self._Td, parcel, which_el='top')
+            self.addInfo(f'CAPE {int(cape.magnitude)} $J/kg$ CIN {int(cin.magnitude)} $J/kg$')
+        except ValueError:
+            print('CAPE/CIN Failed with ValueError')
+            self.addInfo('CAPE #### CIN ####')
 
         if shade:
             self._skew.shade_cape(self._p,self._T,parcel)
