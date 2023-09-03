@@ -9,12 +9,7 @@ import numpy as np
 
 import skewt
 
-def np_time_convert(dt64):
-    unix_epoch = np.datetime64(0, 's')
-    one_second = np.timedelta64(1, 's')
-    seconds_since_epoch = (dt64 - unix_epoch) / one_second
-
-    return datetime.datetime.utcfromtimestamp(seconds_since_epoch)
+import misc
 
 config = {
     'source':'dwd_icon-d2/combined.grib2',
@@ -22,7 +17,8 @@ config = {
         {
             'lat':47.9626,
             'lon':11.9964,
-            'name':'Antersberg'
+            'name':'Antersberg',
+            'analysis':'lcl'
         },
     ]
 }
@@ -33,7 +29,7 @@ def run(config):
     for plot in config['plots']:
         _plot(data, **plot)
 
-def _plot(data, lat, lon, name):
+def _plot(data, lat, lon, name, analysis=None):
     for_temp = data.sel(latitude=lat, longitude = lon, method='nearest')
     for_temp = for_temp[['r', 't', 'u', 'v']]
 
@@ -47,8 +43,8 @@ def _plot(data, lat, lon, name):
         u = this_step.u.values * (units.m / units.s)
         v = this_step.v.values * (units.m / units.s)
 
-        valid = np_time_convert(step.valid_time.values)
-        init = np_time_convert(step.time.values)
+        valid = misc.np_time_convert(step.valid_time.values)
+        init = misc.np_time_convert(step.time.values)
 
         valid_str = valid.strftime('%d %b %Y - %HUTC')
         init_str = init.strftime('%d %b %Y - %HUTC')
@@ -60,7 +56,11 @@ def _plot(data, lat, lon, name):
         skt.addInfo(f"VALID: {valid_str}")
         skt.addInfo(f"INIT : {init_str}")
         skt.addInfo(f"LAT {lat} LON {lon}")
-        skt.addAnalysis(shade=True, analysis='lcl')
+
+        if analysis is not None:
+            skt.addAnalysis(shade=True, analysis=analysis)
+
+        # TODO get from source!
         skt.addInfo("FORECAST DWD ICON-D2")
 
         init_for_filename = init.strftime('%Y-%m-%d-%HUTC')

@@ -4,21 +4,23 @@
 
 # <BASE>/<RUN>/<PARAMETER>/icon-d2_regular-lat-lon_pressure-level_<INIT>_<OFFSET>_<LEVEL>_<PARAMETER>
 
+# Detect latest with
+# curl https://opendata.dwd.de/weather/nwp/content.log.bz2 | bzip2 -d
+
 NPROC=$(nproc)
 
 OUTDIR=dwd_icon-d2
 MODEL=icon-d2
 MODEL_LONG=icon-d2_germany
-BASE="http://opendata.dwd.de/weather/nwp"
+BASE="https://opendata.dwd.de/weather/nwp"
 
-RUN="18"
+RUN="00"
 PARAMETERS=( "t" "relhum" "u" "v" "fi" )
 # tot_prec and cape_ml/cin_ml is in 15min intervals and screws with xygrib
 PARAMETERS_SINGLE_LEVEL=( "w_ctmax" )
 PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
 OFFSETS=( "000" "003" "006" "009" "012" "015" "018" "024" "027" "030" "033" "036"  "039" "042" "045" "048" )
 DATE=$(date +%Y%m%d)
-DATE=20230901
 
 mkdir -p $OUTDIR
 
