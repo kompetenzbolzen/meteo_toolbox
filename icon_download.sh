@@ -9,22 +9,29 @@
 
 NPROC=$(nproc)
 
-OUTDIR=dwd_icon-d2
-MODEL=icon-d2
-MODEL_LONG=icon-d2_germany
+#OUTDIR=dwd_icon-d2
+OUTDIR=dwd_icon-eu
+#MODEL=icon-d2
+#MODEL_LONG=icon-d2_germany
+MODEL=icon-eu
+MODEL_LONG=icon-eu_europe
 BASE="https://opendata.dwd.de/weather/nwp"
+
+# In ICON-EU, the parameter name in the filename is in caps.
+# This is a stupid fix for a stupid problem.
+PARAMETER_FILENAME_CAPS=yes
 
 RUN="00"
 PARAMETERS=( "t" "relhum" "u" "v" "fi" )
 # tot_prec and cape_ml/cin_ml is in 15min intervals and screws with xygrib
-PARAMETERS_SINGLE_LEVEL=( "w_ctmax" )
+# PARAMETERS_SINGLE_LEVEL=( "w_ctmax" )
 PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
 OFFSETS=( "000" "003" "006" "009" "012" "015" "018" "024" "027" "030" "033" "036"  "039" "042" "045" "048" )
 DATE=$(date +%Y%m%d)
 
 mkdir -p $OUTDIR
 
-echo -n > "$OUTDIR/index.txt"
+#echo -n > "$OUTDIR/index.txt"
 
 for OFFSET in "${OFFSETS[@]}"; do
 	for PARAMETER in "${PARAMETERS[@]}"; do
@@ -33,10 +40,16 @@ for OFFSET in "${OFFSETS[@]}"; do
 				sleep 1
 			done
 
-			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_pressure-level_${DATE}${RUN}_${OFFSET}_${LEVEL}_${PARAMETER}.grib2.bz2"
+			if [ "$PARAMETER_FILENAME_CAPS" = "yes" ]; then
+				PARAMETER2=${PARAMETER^^}
+			else
+				PARAMETER2=${PARAMETER}
+			fi
+
+			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_pressure-level_${DATE}${RUN}_${OFFSET}_${LEVEL}_${PARAMETER2}.grib2.bz2"
 			BNAME=$(basename "$URL")
 			echo Getting "$URL"
-			echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
+			#echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
 			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED! ) &
 
 		done
@@ -47,10 +60,16 @@ for OFFSET in "${OFFSETS[@]}"; do
 				sleep 1
 			done
 
-			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_single-level_${DATE}${RUN}_${OFFSET}_2d_${PARAMETER}.grib2.bz2"
+			if [ "$PARAMETER_FILENAME_CAPS" = "yes" ]; then
+				PARAMETER2=${PARAMETER^^}
+			else
+				PARAMETER2=${PARAMETER}
+			fi
+
+			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_single-level_${DATE}${RUN}_${OFFSET}_2d_${PARAMETER2}.grib2.bz2"
 			BNAME=$(basename "$URL")
 			echo Getting "$URL"
-			echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
+			#echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
 			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED! ) &
 	done
 done
