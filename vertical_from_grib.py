@@ -12,7 +12,7 @@ import skewt
 import misc
 
 config = {
-    'source':'dwd_icon-d2/combined.grib2',
+    'source':'dwd_icon-eu/combined.grib2',
     'plots':[
         {
             'lat':47.9626,
@@ -23,10 +23,10 @@ config = {
     ]
 }
 
-def run(config):
-    data = xr.load_dataset(config['source'], engine='cfgrib')
+def run(source, plots):
+    data = xr.load_dataset(source, engine='cfgrib')
 
-    for plot in config['plots']:
+    for plot in plots:
         _plot(data, **plot)
 
 def _plot(data, lat, lon, name, analysis=None):
@@ -68,4 +68,4 @@ def _plot(data, lat, lon, name, analysis=None):
         skt.plot(filename=f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png')
 
 if __name__ == '__main__':
-    run(config)
+    run(**config)

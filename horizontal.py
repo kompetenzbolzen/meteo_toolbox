@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import xarray as xr
 
+import numpy as np
 from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot
 
+import misc
+
 config = {
-    'source': 'dwd_icon-d2/combined.grib2',
+    'source': 'dwd_icon-eu/combined.grib2',
     'plots': [
         {
-            'name':'',
+            'name':'r_t-750',
             'area': None,
             'layers': [
                 {
@@ -27,13 +30,13 @@ config = {
     ]
 }
 
-def run(config):
-    data = xr.load_dataset(config['source'], engine='cfgrib')
+def run(source, plots):
+    data = xr.load_dataset(source, engine='cfgrib')
 
-    for plot in config['plots']:
+    for plot in plots:
         _plot(data, **plot)
 
-def _plot(data, name, area, layers):
+def _plot(data, name, layers, area = None):
 
     for step in data.coords['step']:
         this_step = data.sel(step=step)
@@ -43,17 +46,29 @@ def _plot(data, name, area, layers):
         for layer in layers:
             map_layers.append(_layer(this_step, **layer))
 
+        valid = misc.np_time_convert(step.valid_time.values)
+        init = misc.np_time_convert(step.time.values)
+
+        valid_str = valid.strftime('%d %b %Y - %HUTC')
+        init_str = init.strftime('%d %b %Y - %HUTC')
+        hours_since_init_str = str(int(this_step.step.values / np.timedelta64(1,'h'))).zfill(2)
+        init_for_filename = init.strftime('%Y-%m-%d-%HUTC')
+
         panel = MapPanel()
-        #panel.area = 'de'
+        if area is not None:
+            panel.area = area
         panel.projection = 'mer'
         panel.layers = ['coastline', 'borders']
         panel.plots = map_layers
+        panel.left_title = f'{name} VALID: {valid_str} (INIT +{hours_since_init_str}) INIT: {init_str}'
+        panel.right_title = 'FORECAST DWD ICON-EU'
 
         pc = PanelContainer()
-        pc.size = (8, 8)
+        pc.size = (12.8, 9.6)
         pc.panels = [panel]
         pc.draw()
-        pc.show()
+        #pc.show()
+        pc.save(f'{name}_{init_for_filename}+{hours_since_init_str}.png')
 
 def _layer(data, layertype, **kwargs):
     layertypes={
@@ -77,4 +92,4 @@ def _layer(data, layertype, **kwargs):
     return ret
 
 if __name__ == '__main__':
-    run(config)
+    run(**config)
