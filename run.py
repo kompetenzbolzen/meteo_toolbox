@@ -2,6 +2,7 @@
 
 import sys
 import yaml
+import matplotlib.pyplot as plt
 
 FILE = 'config.yaml'
 if len(sys.argv) > 1:
@@ -17,3 +18,5 @@ for plotter in conf['plotter']:
 
     mod = __import__(modname)
     mod.run(**plotter)
+
+    plt.close('all')

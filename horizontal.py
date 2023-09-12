@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import os
+
 import xarray as xr
 
 import numpy as np
@@ -30,13 +32,14 @@ config = {
     ]
 }
 
-def run(source, plots):
+def run(source, plots, output='.'):
+    misc.create_output_dir(output)
     data = xr.load_dataset(source, engine='cfgrib')
 
     for plot in plots:
-        _plot(data, **plot)
+        _plot(data, output, **plot)
 
-def _plot(data, name, layers, area = None):
+def _plot(data, output, name, layers, area = None):
 
     for step in data.coords['step']:
         this_step = data.sel(step=step)
@@ -68,7 +71,8 @@ def _plot(data, name, layers, area = None):
         pc.panels = [panel]
         pc.draw()
         #pc.show()
-        pc.save(f'{name}_{init_for_filename}+{hours_since_init_str}.png')
+        outname = f'{name}_{init_for_filename}+{hours_since_init_str}.png'
+        pc.save(os.path.join(output, outname))
 
 def _layer(data, layertype, **kwargs):
     layertypes={

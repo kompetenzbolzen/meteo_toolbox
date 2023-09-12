@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 
 import datetime
 
@@ -23,13 +24,14 @@ config = {
     ]
 }
 
-def run(source, plots):
+def run(source, plots, output='.'):
+    misc.create_output_dir(output)
     data = xr.load_dataset(source, engine='cfgrib')
 
     for plot in plots:
-        _plot(data, **plot)
+        _plot(data, output, **plot)
 
-def _plot(data, lat, lon, name, analysis=None):
+def _plot(data, output, lat, lon, name, analysis=None):
     for_temp = data.sel(latitude=lat, longitude = lon, method='nearest')
     for_temp = for_temp[['r', 't', 'u', 'v']]
 
@@ -65,7 +67,8 @@ def _plot(data, lat, lon, name, analysis=None):
 
         init_for_filename = init.strftime('%Y-%m-%d-%HUTC')
 
-        skt.plot(filename=f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png')
+        outname = f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png'
+        skt.plot(filename=os.path.join(output, outname))
 
 if __name__ == '__main__':
     run(**config)
