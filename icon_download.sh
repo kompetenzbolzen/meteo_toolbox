@@ -7,6 +7,20 @@
 # Detect latest with
 # curl https://opendata.dwd.de/weather/nwp/content.log.bz2 | bzip2 -d
 
+function get_latest_run() {
+	# Allow up to 3hours for DWD to upload the new model run. We also want UTC
+	export TZ=UTC
+	local corrected_date=$(date -d "$(date '+%Y-%m-%d %H:%M:%S') 3 hours ago"  '+%Y-%m-%d %H:%M:%S')
+	local current_hour=$(date -d "$corrected_date" +%H)
+	local run_hour=$(( (current_hour/6) * 6 ))
+
+	RUN=$(printf "%02d" $run_hour)
+	DATE=$(date -d "$corrected_date" +%Y%m%d)
+
+	echo Selecting run $RUN - $DATE
+}
+
+
 NPROC=$(nproc)
 
 #OUTDIR=dwd_icon-d2
@@ -17,21 +31,21 @@ MODEL=icon-eu
 MODEL_LONG=icon-eu_europe
 BASE="https://opendata.dwd.de/weather/nwp"
 
+get_latest_run
+#RUN="00"
+#DATE=$(date +%Y%m%d)
+
 # In ICON-EU, the parameter name in the filename is in caps.
 # This is a stupid fix for a stupid problem.
 PARAMETER_FILENAME_CAPS=yes
 
-RUN="00"
 PARAMETERS=( "t" "relhum" "u" "v" "fi" )
 # tot_prec and cape_ml/cin_ml is in 15min intervals and screws with xygrib
-# PARAMETERS_SINGLE_LEVEL=( "w_ctmax" )
+PARAMETERS_SINGLE_LEVEL=( "pmsl" )
 PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
 OFFSETS=( "000" "003" "006" "009" "012" "015" "018" "024" "027" "030" "033" "036"  "039" "042" "045" "048" )
-DATE=$(date +%Y%m%d)
 
 mkdir -p $OUTDIR
-
-#echo -n > "$OUTDIR/index.txt"
 
 for OFFSET in "${OFFSETS[@]}"; do
 	for PARAMETER in "${PARAMETERS[@]}"; do
@@ -48,9 +62,8 @@ for OFFSET in "${OFFSETS[@]}"; do
 
 			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_pressure-level_${DATE}${RUN}_${OFFSET}_${LEVEL}_${PARAMETER2}.grib2.bz2"
 			BNAME=$(basename "$URL")
-			echo Getting "$URL"
-			#echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
-			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED! ) &
+			echo Getting "$BNAME"
+			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED: "$BNAME" ) &
 
 		done
 	done
@@ -68,9 +81,8 @@ for OFFSET in "${OFFSETS[@]}"; do
 
 			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_single-level_${DATE}${RUN}_${OFFSET}_2d_${PARAMETER2}.grib2.bz2"
 			BNAME=$(basename "$URL")
-			echo Getting "$URL"
-			#echo "${BNAME%.bz2}" >> $OUTDIR/index.txt
-			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED! ) &
+			echo Getting "$BNAME"
+			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED: "$BNAME" ) &
 	done
 done
 
