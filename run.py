@@ -4,6 +4,13 @@ import sys
 import yaml
 import matplotlib.pyplot as plt
 
+from metpy.units import units
+
+# Define custom gpm and gpdm units. The default gpm in metpy is aliased to meter.
+# We need the correct definition
+units.define('_gpm = 9.80665 * J/kg')
+units.define('_gpdm = 10 * _gpm')
+
 FILE = 'config.yaml'
 if len(sys.argv) > 1:
     FILE = sys.argv[1]
