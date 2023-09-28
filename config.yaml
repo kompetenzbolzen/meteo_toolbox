@@ -1,0 +1,41 @@
+---
+plotter:
+  - module: vertical_from_grib
+    source: dwd_icon-eu/combined.grib2
+    output: out
+    plots:
+      - lat: 47.96
+        lon: 11.99
+        name: Antersberg
+        analysis: lcl
+  - module: horizontal
+    source: dwd_icon-eu/combined.grib2
+    output: out
+    plots:
+      - name: t_fi_850
+        area: null
+        layers:
+          - layertype: raster
+            field: t
+            level: 850
+            plot_units: degC
+            colormap: jet
+          - layertype: contour
+            field: z
+            level: 850
+            plot_units: '_gpdm'
+            contours: 5
+            clabels: true
+      - name: pmsl_t850
+        area: null
+        layers:
+          - layertype: raster
+            field: t
+            level: 850
+            plot_units: degC
+            colormap: jet
+          - layertype: contour
+            field: prmsl
+            plot_units: 'hPa'
+            contours: 10
+            clabels: true
