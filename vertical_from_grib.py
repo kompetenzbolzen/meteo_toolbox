@@ -2,6 +2,7 @@
 import os
 
 import datetime
+import json
 
 import xarray as xr
 from metpy.units import units
@@ -34,6 +35,7 @@ def run(source, plots, output='.'):
 def _plot(data, output, lat, lon, name, analysis=None):
     for_temp = data.sel(latitude=lat, longitude = lon, method='nearest')
     for_temp = for_temp[['r', 't', 'u', 'v']]
+    index = []
 
     for step in for_temp.coords['step']:
         this_step = for_temp.sel(step=step)
@@ -69,6 +71,18 @@ def _plot(data, output, lat, lon, name, analysis=None):
 
         outname = f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png'
         skt.plot(filename=os.path.join(output, outname))
+
+        index.append(
+            {
+                'file': outname,
+                'init': init_str,
+                'valid': valid_str,
+                'valid_offset': hours_since_init_str
+            }
+        )
+
+    with open(os.path.join(output, f'skewt_{name}.index.json'), 'w') as f:
+        f.write(json.dumps(index, indent=4))
 
 if __name__ == '__main__':
     run(**config)

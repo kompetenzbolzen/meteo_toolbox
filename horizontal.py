@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import json
 
 import xarray as xr
 
@@ -40,6 +41,7 @@ def run(source, plots, output='.'):
         _plot(data, output, **plot)
 
 def _plot(data, output, name, layers, area = None):
+    index = []
 
     for step in data.coords['step']:
         this_step = data.sel(step=step)
@@ -73,6 +75,18 @@ def _plot(data, output, name, layers, area = None):
         #pc.show()
         outname = f'{name}_{init_for_filename}+{hours_since_init_str}.png'
         pc.save(os.path.join(output, outname))
+
+        index.append(
+            {
+                'file': outname,
+                'init': init_str,
+                'valid': valid_str,
+                'valid_offset': hours_since_init_str
+            }
+        )
+
+    with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
+        f.write(json.dumps(index, indent=4))
 
 def _layer(data, layertype, **kwargs):
     layertypes={
