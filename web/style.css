@@ -1,0 +1,13 @@
+:root {
+	--dummy: white;
+	--indexwidth: 50px;
+}
+
+div.index {
+	width: var(--indexwidth);
+	position: fixed;
+}
+
+div.mapframe {
+	margin-left: var(--indexwidth);
+}
