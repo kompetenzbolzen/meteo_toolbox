@@ -79,7 +79,8 @@ for OFFSET in "${OFFSETS[@]}"; do
 				PARAMETER2=${PARAMETER}
 			fi
 
-			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_single-level_${DATE}${RUN}_${OFFSET}_2d_${PARAMETER2}.grib2.bz2"
+			# !! Icon-D2 needs _2d_ between OFFSET and PARAMETER2
+			URL="$BASE/$MODEL/grib/$RUN/$PARAMETER/${MODEL_LONG}_regular-lat-lon_single-level_${DATE}${RUN}_${OFFSET}_${PARAMETER2}.grib2.bz2"
 			BNAME=$(basename "$URL")
 			echo Getting "$BNAME"
 			( wget -q --directory-prefix=$OUTDIR  "$URL" || echo FAILED: "$BNAME" ) &
