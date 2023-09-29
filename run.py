@@ -2,6 +2,7 @@
 
 import sys
 import yaml
+import json
 import matplotlib.pyplot as plt
 
 from metpy.units import units
@@ -19,11 +20,16 @@ conf = None
 with open(FILE, 'r') as f:
     conf = yaml.safe_load(f)
 
+index = []
+
 for plotter in conf['plotter']:
     modname = plotter['module']
     del plotter['module']
 
     mod = __import__(modname, fromlist=[None])
-    mod.run(**plotter)
+    index.extend(mod.run(**plotter))
 
     plt.close('all')
+
+with open(conf['index'], 'w') as f:
+    f.write(json.dumps(index, indent=4))

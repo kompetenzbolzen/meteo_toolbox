@@ -37,8 +37,12 @@ def run(source, plots, output='.'):
     misc.create_output_dir(output)
     data = xr.load_dataset(source, engine='cfgrib')
 
+    index = []
+
     for plot in plots:
-        _plot(data, output, **plot)
+        index.append(_plot(data, output, **plot))
+
+    return index
 
 def _plot(data, output, name, layers, area = None):
     index = []
@@ -87,6 +91,8 @@ def _plot(data, output, name, layers, area = None):
 
     with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
         f.write(json.dumps(index, indent=4))
+
+    return { 'name': name, 'indexfile': f'{name}.index.json' }
 
 def _layer(data, layertype, **kwargs):
     layertypes={

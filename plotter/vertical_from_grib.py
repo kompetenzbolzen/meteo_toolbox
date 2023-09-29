@@ -29,8 +29,12 @@ def run(source, plots, output='.'):
     misc.create_output_dir(output)
     data = xr.load_dataset(source, engine='cfgrib')
 
+    index = []
+
     for plot in plots:
-        _plot(data, output, **plot)
+        index.append(_plot(data, output, **plot))
+
+    return index
 
 def _plot(data, output, lat, lon, name, analysis=None):
     for_temp = data.sel(latitude=lat, longitude = lon, method='nearest')
@@ -83,6 +87,8 @@ def _plot(data, output, lat, lon, name, analysis=None):
 
     with open(os.path.join(output, f'skewt_{name}.index.json'), 'w') as f:
         f.write(json.dumps(index, indent=4))
+
+    return {'name': name, 'indexfile': f'skewt_{name}.index.json'}
 
 if __name__ == '__main__':
     run(**config)

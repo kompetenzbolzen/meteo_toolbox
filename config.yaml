@@ -1,8 +1,9 @@
 ---
+index: web/data/index.json
 plotter:
   - module: 'plotter.vertical_from_grib'
     source: dwd_icon-eu/combined.grib2
-    output: out
+    output: web/data
     plots:
       - lat: 47.96
         lon: 11.99
@@ -10,7 +11,7 @@ plotter:
         analysis: lcl
   - module: 'plotter.horizontal'
     source: dwd_icon-eu/combined.grib2
-    output: out
+    output: web/data
     plots:
       - name: t_fi_850
         area: null
