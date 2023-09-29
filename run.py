@@ -23,7 +23,7 @@ for plotter in conf['plotter']:
     modname = plotter['module']
     del plotter['module']
 
-    mod = __import__(modname)
+    mod = __import__(modname, fromlist=[None])
     mod.run(**plotter)
 
     plt.close('all')

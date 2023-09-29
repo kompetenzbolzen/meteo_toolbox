@@ -1,6 +1,6 @@
 ---
 plotter:
-  - module: vertical_from_grib
+  - module: 'plotter.vertical_from_grib'
     source: dwd_icon-eu/combined.grib2
     output: out
     plots:
@@ -8,7 +8,7 @@ plotter:
         lon: 11.99
         name: Antersberg
         analysis: lcl
-  - module: horizontal
+  - module: 'plotter.horizontal'
     source: dwd_icon-eu/combined.grib2
     output: out
     plots:
