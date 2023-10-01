@@ -1,11 +1,9 @@
 // python3 -m http.server
 
 const data_dir = 'data';
-//const index_file = "pmsl_t850.index.json";
 const index_file = "index.json";
 
 var index = null;
-var product_index = null;
 var mapframe = null;
 
 function httpGetAsync(url, callback)
@@ -26,12 +24,12 @@ function loadIndexFromJson(raw_text) {
 }
 
 function build_indexlist(index_obj) {
-	//if (index_obj==null) {
-	//	return;
-	//}
-
 	div = document.createElement('div');
 	div.classList.add('index');
+
+	title = document.createElement('h4');
+	title.innerText = 'INIT+';
+	div.appendChild(title);
 
 	list = document.createElement('ul');
 
@@ -100,6 +98,10 @@ function build_product_index(raw_text) {
 
 	div = document.createElement('div');
 	div.classList.add('product_index');
+
+	title = document.createElement('h4');
+	title.innerText = 'Products';
+	div.appendChild(title);
 
 	list = document.createElement('ul');
 

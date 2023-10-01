@@ -1,13 +1,24 @@
 :root {
 	--dummy: white;
-	--indexwidth: 50px;
+	--indexwidth: 100px;
+	--productindex-width: 150px;
+}
+
+body {
+	font-family: mono;
+}
+
+div.product_index {
+	width: var(--productindex-width);
+	float: left;
 }
 
 div.index {
 	width: var(--indexwidth);
-	position: fixed;
+	float: left;
+	margin-top: var(--header-heigth);
 }
 
 div.mapframe {
-	margin-left: var(--indexwidth);
+	float: left;
 }
