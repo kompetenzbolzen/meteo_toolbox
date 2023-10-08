@@ -39,7 +39,7 @@ get_latest_run
 # This is a stupid fix for a stupid problem.
 PARAMETER_FILENAME_CAPS=yes
 
-PARAMETERS=( "t" "relhum" "u" "v" "fi" )
+PARAMETERS=( "t" "relhum" "u" "v" "fi" "clc" )
 # tot_prec and cape_ml/cin_ml is in 15min intervals and screws with xygrib
 PARAMETERS_SINGLE_LEVEL=( "pmsl" )
 PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
