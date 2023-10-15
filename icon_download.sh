@@ -41,9 +41,11 @@ PARAMETER_FILENAME_CAPS=yes
 
 PARAMETERS=( "t" "relhum" "u" "v" "fi" "clc" )
 # tot_prec and cape_ml/cin_ml is in 15min intervals and screws with xygrib
-PARAMETERS_SINGLE_LEVEL=( "pmsl" )
-PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
-OFFSETS=( "000" "003" "006" "009" "012" "015" "018" "024" "027" "030" "033" "036"  "039" "042" "045" "048" )
+PARAMETERS_SINGLE_LEVEL=( "pmsl" "t_2m" "relhum_2m" )
+# DE
+#PRESSURE_LEVELS=( "1000" "975" "950" "850" "700" "600" "500" "400" "300" "250" "200" )
+PRESSURE_LEVELS=( "1000" "950" "925" "900" "875" "850" "825" "800" "775" "700" "600" "500" "400" "300" "250" "200" "150" "100" )
+OFFSETS=( "000" "003" "006" "009" "012" "015" "018" "021" "024" "027" "030" "033" "036"  "039" "042" "045" "048" )
 
 mkdir -p $OUTDIR
 
@@ -101,7 +103,7 @@ for F in $OUTDIR/*.grib2.bz2; do
 	bzip2 -df "$F" &
 done
 
-rm -f $OUTDIR/combined.grib2
+rm -f $OUTDIR/combined.grib2*
 
 grib_copy $OUTDIR/*.grib2 $OUTDIR/combined.grib2 || exit 1
 rm -f $OUTDIR/icon*.grib2
