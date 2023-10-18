@@ -33,10 +33,8 @@ config = {
     ]
 }
 
-def run(source, plots, output='.'):
+def run(data, plots, output='.'):
     misc.create_output_dir(output)
-    data = xr.load_dataset(source, engine='cfgrib')
-
     index = []
 
     for plot in plots:

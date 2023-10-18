@@ -1,8 +1,28 @@
 ---
 index: web/data/index.json
+aggregator:
+  icon_eu:
+    module: aggregator.dwd_icon
+    output: dwd_icon_cache
+    model: icon-eu
+    model_long: icon-eu_europe
+    parameter_caps_in_filename: true
+    pressure_level_parameters:
+      - t
+      - relhum
+      - u
+      - v
+      - fi
+      - clc
+    single_level_parameters:
+      - pmsl
+      - t_2m
+      - relhum_2m
+    pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
+    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48]
 plotter:
   - module: 'plotter.vertical_from_grib'
-    source: dwd_icon-eu/combined.grib2
+    aggregator: icon_eu
     output: web/data
     plots:
       - lat: 47.96
@@ -10,7 +30,7 @@ plotter:
         name: Antersberg
         analysis: lcl
   - module: 'plotter.horizontal'
-    source: dwd_icon-eu/combined.grib2
+    aggregator: icon_eu
     output: web/data
     plots:
       - name: t_fi_850

@@ -11,6 +11,8 @@ from multiprocessing.pool import ThreadPool
 
 import subprocess
 
+import xarray as xr
+
 import misc
 
 BASE='https://opendata.dwd.de/weather/nwp'
@@ -86,12 +88,16 @@ def download_dwd_gribs(config, date, run, target):
     if res.returncode != 0:
         print('rm failed with: ', res.stderr)
 
-def load_data(config):
+def load_data(name, config):
     run, date = get_current_run()
-    target = os.path.join(config['output'], f'combined_{date}_{run}.grib2')
+    target = os.path.join(config['output'], f'{name}_{date}_{run}.grib2')
 
     if not os.path.exists(target):
         download_dwd_gribs(config, date, run, target)
+    else:
+        print(f'{target} alreasy exists. Using the cached version.')
+
+    return xr.load_dataset(target, engine='cfgrib')
 
 config = {
     'output':'dwd_icon-eu',
@@ -116,5 +122,5 @@ config = {
 }
 
 if __name__ == '__main__':
-    load_data(config)
+    load_data('test_icon_eu', config)
 

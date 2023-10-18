@@ -26,6 +26,19 @@ for plotter in conf['plotter']:
     modname = plotter['module']
     del plotter['module']
 
+    if 'aggregator' in plotter:
+        aggname = plotter['aggregator']
+        del plotter['aggregator']
+        aggconf = conf['aggregator'][aggname]
+        classname = aggconf['module']
+        # We should prbly not delete it like in the plotter, since it is not a deepcopy
+        # and may be used again.
+
+        agg = __import__(classname, fromlist=[None])
+
+        # TODO: figure out a way to use **aggconf instead.
+        plotter['data'] = agg.load_data(aggname, aggconf)
+
     mod = __import__(modname, fromlist=[None])
     index.extend(mod.run(**plotter))
 
