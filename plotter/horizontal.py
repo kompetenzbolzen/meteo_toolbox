@@ -5,6 +5,7 @@ import json
 import xarray as xr
 
 import numpy as np
+import matplotlib.pyplot as plt
 from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot
 
 import misc
@@ -72,11 +73,13 @@ def _plot(data, output, name, layers, area = None):
 
         pc = PanelContainer()
         pc.size = (12.8, 9.6)
+        #pc.figure.layout='constrained'
         pc.panels = [panel]
         pc.draw()
         #pc.show()
         outname = f'{name}_{init_for_filename}+{hours_since_init_str}.png'
         pc.save(os.path.join(output, outname))
+        plt.close('all')
 
         index.append(
             {
