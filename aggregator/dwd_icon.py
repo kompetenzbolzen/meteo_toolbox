@@ -42,15 +42,16 @@ def unpack_bz2(dest):
     if res.returncode != 0:
         print(f'There was an error unpacking {dest}:', res.stderr)
 
-def download_dwd_gribs(config, date, run, target):
-    model = config['model']
-    model_long = config['model_long']
-
-    misc.create_output_dir(config['output'])
+def download_dwd_gribs(
+        date, run, target, output, model, steps, model_long,
+        pressure_level_parameters, parameter_caps_in_filename,
+        single_level_parameters
+):
+    misc.create_output_dir(output)
 
     to_download = []
 
-    for step in config['steps']:
+    for step in steps:
         step_str = f'{step:03d}'
 
         for parameter in config['pressure_level_parameters']:
@@ -62,12 +63,12 @@ def download_dwd_gribs(config, date, run, target):
 
                 to_download.append((URL, os.path.join(config['output'], filename)))
 
-        for parameter in config['single_level_parameters']:
-            parameter2 = parameter.upper() if config['parameter_caps_in_filename'] else parameter
+        for parameter in single_level_parameters:
+            parameter2 = parameter.upper() if parameter_caps_in_filename else parameter
             filename = f'{model_long}_regular-lat-lon_single-level_{date}{run}_{step_str}_{parameter2}.grib2.bz2'
             URL = f'{BASE}/{model}/grib/{run}/{parameter}/{filename}'
 
-            to_download.append((URL, os.path.join(config['output'], filename)))
+            to_download.append((URL, os.path.join(output, filename)))
 
 
     for _ in ThreadPool(cpu_count()).imap_unordered(download_url, to_download):
@@ -88,18 +89,18 @@ def download_dwd_gribs(config, date, run, target):
     if res.returncode != 0:
         print('rm failed with: ', res.stderr)
 
-def load_data(name, config):
+def load_data(name, output, **kwargs):
     run, date = get_current_run()
-    target = os.path.join(config['output'], f'{name}_{date}_{run}.grib2')
+    target = os.path.join(output, f'{name}_{date}_{run}.grib2')
 
     if not os.path.exists(target):
-        download_dwd_gribs(config, date, run, target)
+        download_dwd_gribs(date, run, target, output, **kwargs)
     else:
         print(f'{target} alreasy exists. Using the cached version.')
 
     return xr.load_dataset(target, engine='cfgrib')
 
-config = {
+debug_config = {
     'output':'dwd_icon-eu',
     'model':'icon-eu',
     'model_long':'icon-eu_europe',
@@ -122,5 +123,5 @@ config = {
 }
 
 if __name__ == '__main__':
-    load_data('test_icon_eu', config)
+    load_data('test_icon_eu', **debug_config)
 
