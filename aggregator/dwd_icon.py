@@ -45,7 +45,7 @@ def unpack_bz2(dest):
 def download_dwd_gribs(
         date, run, target, output, model, steps, model_long,
         pressure_level_parameters, parameter_caps_in_filename,
-        single_level_parameters
+        single_level_parameters, pressure_levels
 ):
     misc.create_output_dir(output)
 
@@ -54,14 +54,14 @@ def download_dwd_gribs(
     for step in steps:
         step_str = f'{step:03d}'
 
-        for parameter in config['pressure_level_parameters']:
-            parameter2 = parameter.upper() if config['parameter_caps_in_filename'] else parameter
+        for parameter in pressure_level_parameters:
+            parameter2 = parameter.upper() if parameter_caps_in_filename else parameter
 
-            for level in config['pressure_levels']:
+            for level in pressure_levels:
                 filename = f'{model_long}_regular-lat-lon_pressure-level_{date}{run}_{step_str}_{level}_{parameter2}.grib2.bz2'
                 URL = f'{BASE}/{model}/grib/{run}/{parameter}/{filename}'
 
-                to_download.append((URL, os.path.join(config['output'], filename)))
+                to_download.append((URL, os.path.join(output, filename)))
 
         for parameter in single_level_parameters:
             parameter2 = parameter.upper() if parameter_caps_in_filename else parameter
@@ -89,7 +89,7 @@ def download_dwd_gribs(
     if res.returncode != 0:
         print('rm failed with: ', res.stderr)
 
-def load_data(name, output, **kwargs):
+def load_data(name, output, description = None, **kwargs):
     run, date = get_current_run()
     target = os.path.join(output, f'{name}_{date}_{run}.grib2')
 
@@ -98,7 +98,11 @@ def load_data(name, output, **kwargs):
     else:
         print(f'{target} alreasy exists. Using the cached version.')
 
-    return xr.load_dataset(target, engine='cfgrib')
+    ds = xr.load_dataset(target, engine='cfgrib')
+    if description is not None:
+        ds.attrs['_description'] = description
+    return ds
+
 
 debug_config = {
     'output':'dwd_icon-eu',

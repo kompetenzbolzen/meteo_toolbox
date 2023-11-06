@@ -66,8 +66,8 @@ def _plot(data, output, lat, lon, name, analysis=None):
         if analysis is not None:
             skt.addAnalysis(shade=True, analysis=analysis)
 
-        # TODO get from source!
-        skt.addInfo("FORECAST DWD ICON-D2")
+        if '_description' in data.attrs:
+            skt.addInfo(data.attrs['_description'])
 
         init_for_filename = init.strftime('%Y-%m-%d-%HUTC')
 
