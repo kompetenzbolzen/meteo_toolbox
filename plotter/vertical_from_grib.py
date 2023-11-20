@@ -34,9 +34,12 @@ def run(data, plots, output='.'):
 
     return index
 
-def _plot(data, output, lat, lon, name, analysis=None):
-    for_temp = data.sel(latitude=lat, longitude = lon, method='nearest')
-    for_temp = for_temp[['r', 't', 'u', 'v']]
+def _plot(data, output, name, lat=None, lon=None, analysis=None):
+    for_temp = data[['r', 't', 'u', 'v']]
+
+    if not (lat is None and lon is None):
+        for_temp = for_temp.sel(latitude=lat, longitude=lon, method='nearest')
+
     index = []
 
     for step in for_temp.coords['step']:
