@@ -21,6 +21,7 @@ It defines datasources, as well as plots to create.
 See the included `config.yaml` for an example configuration.
 
 To trigger chart generation, execute `run.py`.
+If no path is provided as argument, `config.yaml` is used by default.
 
 ## Data Sources
 
@@ -31,7 +32,15 @@ and the *University of Wyoming* [Atmospheric Science Radiosonde Archive](http://
 It is my goal to make every plotter work with as many data sources as possible,
 to enable the parallel usage of as many datasources as possible.
 
-## notes
+## Web
 
-https://matplotlib.org/3.1.1/gallery/color/colormap_reference.html
-https://unidata.github.io/MetPy/v1.0/api/generated/metpy.plots.ctables.html
+`web/` is a **very** basic web frontend for the generated plots.
+If all the data is put in `web/data/` (which is the default),
+it can be started by just running `python -m http.server -d web/`.
+
+Next to the plots, each plotter also creates an `index.NAME.json`,
+which the webpage uses to list products.
+
+## License
+
+[LICENSE](LICENSE)
