@@ -89,14 +89,26 @@ def download_dwd_gribs(
     if res.returncode != 0:
         print('rm failed with: ', res.stderr)
 
-def load_data(name, output, description = None, **kwargs):
+def clean_output_dir(directory, target):
+    to_delete = [f for f  in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+    if target in to_delete:
+        del to_delete[to_delete.index(target)]
+
+    for f in to_delete:
+        os.unlink(os.path.join(directory, f))
+
+def load_data(name, output, description = None, clean = False, **kwargs):
     run, date = get_current_run()
-    target = os.path.join(output, f'{name}_{date}_{run}.grib2')
+    filename = f'{name}_{date}_{run}.grib2'
+    target = os.path.join(output, filename)
 
     if not os.path.exists(target):
         download_dwd_gribs(date, run, target, output, **kwargs)
     else:
         print(f'{target} alreasy exists. Using the cached version.')
+
+    if clean:
+        clean_output_dir(output, filename)
 
     ds = xr.load_dataset(target, engine='cfgrib')
     if description is not None:
@@ -108,6 +120,7 @@ debug_config = {
     'output':'dwd_icon-eu',
     'model':'icon-eu',
     'model_long':'icon-eu_europe',
+    'clean': True,
     'parameter_caps_in_filename':True,
     'pressure_level_parameters': [
         't',
