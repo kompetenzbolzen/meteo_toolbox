@@ -2,6 +2,8 @@
 import os
 import json
 
+import numpy as np
+
 import matplotlib.pyplot as plt
 
 import xarray as xr
@@ -51,13 +53,28 @@ def _plot(data, output, name, lat, lon):
 
     ax.invert_yaxis()
 
-    ### Second plot
-
+    ### Temp + Dewpoint
     ax2 = fig.add_subplot(5,1,3,sharex=ax)
     ax2.plot(data.valid_time, data.t2m.metpy.convert_units('degC').transpose(), color='red', label='Temperature (2m)')
     ax2.plot(data.valid_time, mpcalc.dewpoint_from_relative_humidity(data.t2m, data.r2).transpose(), color='blue', label='Dewpoint (2m)')
     ax2.set_ylabel('Temperature [degC]')
     ax2.legend(loc='lower right')
+
+    ## MSLP
+    ax3 = fig.add_subplot(5,1,4,sharex=ax)
+    ax3.plot(data.valid_time, data.prmsl.metpy.convert_units('hPa').transpose(), color='black', label='Temperature (2m)')
+    ax3.set_ylabel('Mean Sea Level Pressure [hPa]')
+    #ax3.legend(loc='lower right')
+    # TODO: ADD HBAS_CON, HTOP_CON
+    # If none: -500m
+
+    ax4 = ax3.twinx()
+    ax4.set_ylim(0, 14)
+    ax4.set_ylabel('Convective Clouds Height [km]')
+    ax4.bar(data.valid_time,
+            bottom=data.HBAS_CON.metpy.convert_units('km').transpose(),
+            height=(data.hcct.metpy.convert_units('km')-data.HBAS_CON.metpy.convert_units('km')).transpose(),
+            align='edge', width=np.timedelta64(3, 'h'))
 
     ### Info Lines
 
@@ -71,10 +88,10 @@ def _plot(data, output, name, lat, lon):
     if '_description' in data.attrs:
         info_lines.append(data.attrs['_description'])
 
-    ax = fig.add_subplot(5, 1, 4)
-    ax.text(0, 0, '\n'.join(info_lines), ha='left', va='center',
+    ax_text = fig.add_subplot(5, 1, 5)
+    ax_text.text(0, 0, '\n'.join(info_lines), ha='left', va='center',
             size=10, fontfamily='monospace')
-    ax.axis("off")
+    ax_text.axis("off")
 
     ### Output
 
