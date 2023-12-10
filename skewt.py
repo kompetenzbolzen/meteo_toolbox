@@ -9,12 +9,14 @@ from metpy.plots import add_metpy_logo, Hodograph, SkewT
 from metpy.units import units
 
 class Skewt:
-    def __init__(self, p, T, Td, title=None):
+    def __init__(self, p, T, Td, max_barbs=20, title=None):
         self._p = p
         self._T = T
         self._Td = Td
 
         self._info_lines = []
+
+        self.barb_div = int(max(len(p)/max_barbs,1))
 
 
         # Create a new figure. The dimensions here give a good aspect ratio
@@ -48,7 +50,8 @@ class Skewt:
         plt.tight_layout()
         plt.xlabel('$m/s$')
         plt.ylabel('$m/s$')
-        self._skew.plot_barbs(self._p, u, v)
+
+        self._skew.plot_barbs(self._p[::self.barb_div], u[::self.barb_div], v[::self.barb_div])
 
     def addInfo(self, line):
         self._info_lines.append(line)
