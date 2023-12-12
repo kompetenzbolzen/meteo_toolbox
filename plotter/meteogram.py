@@ -57,6 +57,7 @@ def _plot(data, output, name, lat, lon):
     ax2 = fig.add_subplot(5,1,3,sharex=ax)
     ax2.plot(data.valid_time, data.t2m.metpy.convert_units('degC').transpose(), color='red', label='Temperature (2m)')
     ax2.plot(data.valid_time, mpcalc.dewpoint_from_relative_humidity(data.t2m, data.r2).transpose(), color='blue', label='Dewpoint (2m)')
+    ax2.plot(data.valid_time, data.sel(isobaricInhPa=850.0).t.metpy.convert_units('degC').transpose(), color='grey', label='Tempreature (850hPa)')
     ax2.set_ylabel('Temperature [degC]')
     ax2.legend(loc='lower right')
 
@@ -71,7 +72,7 @@ def _plot(data, output, name, lat, lon):
     ax4 = ax3.twinx()
     ax4.set_ylim(0, 14)
     ax4.set_ylabel('Convective Clouds Height [km]')
-    ax4.bar(data.valid_time,
+    ax4.bar(data.valid_time, alpha=0.5,
             bottom=data.HBAS_CON.metpy.convert_units('km').transpose(),
             height=(data.hcct.metpy.convert_units('km')-data.HBAS_CON.metpy.convert_units('km')).transpose(),
             align='edge', width=np.timedelta64(3, 'h'))
