@@ -25,9 +25,10 @@ If no path is provided as argument, `config.yaml` is used by default.
 
 ## Data Sources
 
-Currently, only the *DWD* models *ICON*, *ICON-EU* and *ICON-D2* are supported via the [DWD OpenData site](https://opendata.dwd.de/weather/nwp/).
-I plan to extend that to at least [ECMWF OpenData](https://www.ecmwf.int/en/forecasts/datasets/open-data)
-and the *University of Wyoming* [Atmospheric Science Radiosonde Archive](http://weather.uwyo.edu/upperair/bufrraob.shtml).
+Currently, *DWD* models *ICON*, *ICON-EU* and *ICON-D2* fom [DWD OpenData site](https://opendata.dwd.de/weather/nwp/)
+and Sounding Data from the *University of Wyoming* [Atmospheric Science Radiosonde Archive](http://weather.uwyo.edu/upperair/bufrraob.shtml)
+are supported.
+I plan to extend that to at least [ECMWF OpenData](https://www.ecmwf.int/en/forecasts/datasets/open-data).
 
 It is my goal to make every plotter work with as many data sources as possible,
 to enable the parallel usage of as many datasources as possible.
@@ -43,4 +44,4 @@ which the webpage uses to list products.
 
 ## License
 
-[LICENSE](LICENSE)
+This project is licensed under the *MIT Licese*. See [LICENSE](LICENSE) for details.
