@@ -97,18 +97,21 @@ def clean_output_dir(directory, target):
     for f in to_delete:
         os.unlink(os.path.join(directory, f))
 
-def load_data(name, output, description = None, clean = False, **kwargs):
-    run, date = get_current_run()
-    filename = f'{name}_{date}_{run}.grib2'
-    target = os.path.join(output, filename)
+def load_data(name, output, description = None, clean = False, force_filename = None, **kwargs):
+    target = force_filename
 
-    if not os.path.exists(target):
-        download_dwd_gribs(date, run, target, output, **kwargs)
-    else:
-        print(f'{target} alreasy exists. Using the cached version.')
+    if target is None:
+        run, date = get_current_run()
+        filename = f'{name}_{date}_{run}.grib2'
+        target = os.path.join(output, filename)
 
-    if clean:
-        clean_output_dir(output, filename)
+        if not os.path.exists(target):
+            download_dwd_gribs(date, run, target, output, **kwargs)
+        else:
+            print(f'{target} already exists. Using the cached version.')
+
+        if clean:
+            clean_output_dir(output, filename)
 
     ds = xr.load_dataset(target, engine='cfgrib')
     if description is not None:
