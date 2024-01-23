@@ -13,6 +13,8 @@ from metpy.units import units
 
 import misc
 
+HEIGHT = 11
+
 def run(data, plots, output='.'):
     misc.create_output_dir(output)
     index = []
@@ -32,11 +34,11 @@ def _plot(data, output, name, lat, lon):
     init_str = init.strftime('%d %b %Y - %HUTC')
     init_for_filename = init.strftime('%Y-%m-%d-%HUTC')
 
-    fig = plt.figure(figsize=(10, 10), layout="constrained")
+    fig = plt.figure(figsize=(12, 10), layout="constrained")
 
 
     # start figure and set axis
-    ax = fig.add_subplot(5,1,(1,2))
+    ax = fig.add_subplot(HEIGHT,1,(1,4))
 
     ax.set_ylabel('Pressure level [hPa]')
 
@@ -54,15 +56,16 @@ def _plot(data, output, name, lat, lon):
     ax.invert_yaxis()
 
     ### Temp + Dewpoint
-    ax2 = fig.add_subplot(5,1,3,sharex=ax)
+    ax2 = fig.add_subplot(HEIGHT,1,(5,6),sharex=ax)
     ax2.plot(data.valid_time, data.t2m.metpy.convert_units('degC').transpose(), color='red', label='Temperature (2m)')
     ax2.plot(data.valid_time, mpcalc.dewpoint_from_relative_humidity(data.t2m, data.r2).transpose(), color='blue', label='Dewpoint (2m)')
     ax2.plot(data.valid_time, data.sel(isobaricInhPa=850.0).t.metpy.convert_units('degC').transpose(), color='grey', label='Tempreature (850hPa)')
     ax2.set_ylabel('Temperature [degC]')
     ax2.legend(loc='lower right')
 
+
     ## MSLP
-    ax3 = fig.add_subplot(5,1,4,sharex=ax)
+    ax3 = fig.add_subplot(HEIGHT,1,(7,8),sharex=ax)
     ax3.plot(data.valid_time, data.prmsl.metpy.convert_units('hPa').transpose(), color='black', label='Temperature (2m)')
     ax3.set_ylabel('Mean Sea Level Pressure [hPa]')
     #ax3.legend(loc='lower right')
@@ -77,8 +80,19 @@ def _plot(data, output, name, lat, lon):
             height=(data.hcct.metpy.convert_units('km')-data.HBAS_CON.metpy.convert_units('km')).transpose(),
             align='edge', width=np.timedelta64(3, 'h'))
 
-    ### Info Lines
+    # Precip
+    ax5 = fig.add_subplot(HEIGHT,1,(9,10),sharex=ax)
+    ax5.set_ylabel('Total precipitation [mm]')
+    ax5.set_ylim(0, 30)
+    ax5.bar(data.valid_time[:-1], data.tp.diff('step').transpose(), width=np.timedelta64(3, 'h'),
+            align='edge', alpha=0.7, color='green')
 
+    ax6 = ax5.twinx()
+    ax6.set_ylabel('Snow depth [m]')
+    ax6.set_ylim(bottom=0)
+    ax6.plot(data.valid_time, data.sde.transpose(), color='blue')
+
+    ### Info Lines
     info_lines = []
     init = misc.np_time_convert(data.time.values)
     init_str = init.strftime('%d %b %Y - %HUTC')
@@ -89,7 +103,7 @@ def _plot(data, output, name, lat, lon):
     if '_description' in data.attrs:
         info_lines.append(data.attrs['_description'])
 
-    ax_text = fig.add_subplot(5, 1, 5)
+    ax_text = fig.add_subplot(HEIGHT, 1, 11)
     ax_text.text(0, 0, '\n'.join(info_lines), ha='left', va='center',
             size=10, fontfamily='monospace')
     ax_text.axis("off")
