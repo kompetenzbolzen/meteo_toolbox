@@ -16,10 +16,9 @@ def create_aggregators(cfg):
         classname = aggconf['module']
         del aggconf['module']
 
-        ret[aggregator] = {}
-        ret[aggregator]['module'] = __import__(classname, fromlist=[None])
-        ret[aggregator]['config'] = aggconf
-        ret[aggregator]['config']['name'] = aggregator
+        module = __import__(classname, fromlist=[None])
+
+        ret[aggregator] = module.load_data(name=aggregator, **aggconf)
 
     return ret
 
@@ -66,8 +65,7 @@ for plotter in conf['plotter']:
     del plotter['module']
 
     if 'aggregator' in plotter:
-        agg = aggregators[plotter['aggregator']]
-        plotter['data'] = agg['module'].load_data(**agg['config'])
+        plotter['data'] = aggregators[plotter['aggregator']]
         del plotter['aggregator']
 
     mod = __import__(modname, fromlist=[None])
