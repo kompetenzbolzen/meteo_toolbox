@@ -4,6 +4,8 @@ import os
 import datetime
 import json
 
+import matplotlib.pyplot as plt
+
 import xarray as xr
 from metpy.units import units
 import metpy.calc as mpcalc
@@ -76,6 +78,8 @@ def _plot(data, output, name, lat=None, lon=None, analysis=None):
 
         outname = f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png'
         skt.plot(filename=os.path.join(output, outname))
+
+        plt.close('all')
 
         index.append(
             {

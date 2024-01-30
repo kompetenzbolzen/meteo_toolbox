@@ -22,6 +22,8 @@ def create_aggregators(cfg):
 
     return ret
 
+mpl.use('agg')
+
 # Define custom gpm and gpdm units. The default gpm in metpy is aliased to meter.
 # We need the correct definition
 units.define('_gpm = 9.80665 * J/kg')
