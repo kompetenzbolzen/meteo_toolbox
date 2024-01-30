@@ -69,7 +69,8 @@ def _plot(data, output, name, layers, area = None):
         panel.layers = ['coastline', 'borders']
         panel.plots = map_layers
         panel.left_title = f'{name} VALID: {valid_str} (INIT +{hours_since_init_str}) INIT: {init_str}'
-        panel.right_title = 'FORECAST DWD ICON-EU'
+        if '_description' in data.attrs:
+            panel.right_title = data.attrs['_description']
 
         pc = PanelContainer()
         pc.size = (12.8, 9.6)
