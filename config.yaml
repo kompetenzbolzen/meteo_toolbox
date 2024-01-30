@@ -22,6 +22,7 @@ aggregator:
       - htop_con
       - htop_dc
       - tot_prec
+      - h_snow
     pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
     steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72]
     description: FORECAST DWD ICON-EU
