@@ -6,14 +6,11 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-import xarray as xr
-from metpy.interpolate import cross_section
 import metpy.calc as mpcalc
-from metpy.units import units
 
 import misc
 
-HEIGHT = 11
+HEIGHT = 13
 
 def run(data, plots, output='.'):
     misc.create_output_dir(output)
@@ -40,8 +37,12 @@ def _add_cloudcov(ax, data):
     cf = ax.contour(data.valid_time, data.isobaricInhPa, data.t.metpy.convert_units('degC').transpose())
     ax.clabel(cf, inline=True, fontsize=10)
 
-    # TODO convert to knots?
-    barbs = ax.barbs(data.valid_time, data.isobaricInhPa, data.u.transpose(), data.v.transpose())
+    ax.barbs(
+            data.valid_time,
+            data.isobaricInhPa,
+            data.u.metpy.convert_units('kt').transpose(), 
+            data.v.metpy.convert_units('kt').transpose()
+        )
 
     ax.invert_yaxis()
 
@@ -78,11 +79,26 @@ def _add_precip(ax, data):
     ax_p.set_ylim(bottom=0)
     ax_p.plot(data.valid_time, data.sde.transpose(), color='blue')
 
+def _add_surface_wind(ax, data):
+    ax.plot(data.valid_time, mpcalc.wind_speed(data.u10.transpose(), data.v10.transpose()), color='black', label='Wind (10m)')
+    ax.plot(data.valid_time, data.fg10.transpose(), color='red', label='Gust (10m)')
+
+    ax_b = ax.twinx()
+    ax_b.barbs(
+            data.valid_time,
+            [1 for _ in data.valid_time],
+            data.u10.metpy.convert_units('kt').transpose(), 
+            data.v10.metpy.convert_units('kt').transpose()
+        )
+    ax_b.axis('off')
+
+    ax.set_ylabel('Wind Speed [m/s]')
+    ax.legend(loc='lower right')
 
 def _plot(data, output, name, lat, lon):
     data = data.sel(latitude=lat, longitude = lon, method='nearest')
 
-    fig = plt.figure(figsize=(12, 10), layout="constrained")
+    fig = plt.figure(figsize=(12, 12), layout="constrained")
 
     sp_cnt, spec = _get_next_subplot(4)
     ax = fig.add_subplot(HEIGHT,1,spec)
@@ -103,6 +119,10 @@ def _plot(data, output, name, lat, lon):
     sp_cnt, spec4 = _get_next_subplot(2,sp_cnt)
     ax5 = fig.add_subplot(HEIGHT,1,spec4,sharex=ax)
     _add_precip(ax5, data)
+
+    sp_cnt, spec5 = _get_next_subplot(2,sp_cnt)
+    ax6 = fig.add_subplot(HEIGHT,1,spec5,sharex=ax)
+    _add_surface_wind(ax6, data)
 
     ### Info Lines
     sp_cnt, spec5 = _get_next_subplot(1,sp_cnt)

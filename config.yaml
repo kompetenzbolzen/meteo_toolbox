@@ -1,7 +1,7 @@
 ---
 index: web/data/index.json
 aggregator:
-  icon_eu:
+  icon_eu_other:
     module: aggregator.dwd_icon
     output: dwd_icon_cache
     model: icon-eu
@@ -26,6 +26,26 @@ aggregator:
     pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
     steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72]
     description: FORECAST DWD ICON-EU
+  icon_eu_10m_params:
+    module: aggregator.dwd_icon
+    output: dwd_icon_cache
+    model: icon-eu
+    model_long: icon-eu_europe
+    parameter_caps_in_filename: true
+    pressure_level_parameters: []
+    single_level_parameters:
+      - u_10m
+      - v_10m
+      - vmax_10m
+    pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
+    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72]
+    description: FORECAST DWD ICON-EU
+modifier:
+  icon_eu:
+    module: modifier.merge
+    aggregator:
+      - icon_eu_other
+      - icon_eu_10m_params
 plotter:
   - module: plotter.meteogram
     aggregator: icon_eu
