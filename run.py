@@ -22,6 +22,30 @@ def create_aggregators(cfg):
 
     return ret
 
+def create_modifiers(aggregators, cfg):
+    # naming is scuffed
+    ret = {}
+    for modifier in cfg:
+        mod = cfg[modifier]
+        modname = mod['module']
+        del mod['module']
+
+        if 'aggregator' in mod:
+            if type(mod['aggregator']) == list:
+                mod['data'] = []
+                for ag in mod['aggregator']:
+                    mod['data'].append(aggregators[ag])
+
+                del mod['aggregator']
+            else:
+                mod['data'] = aggregators[mod['aggregator']]
+                del mod['aggregator']
+
+        pymod = __import__(modname, fromlist=[None])
+        ret[modifier] = pymod.run(**mod)
+
+    return ret
+
 mpl.use('agg')
 
 # Define custom gpm and gpdm units. The default gpm in metpy is aliased to meter.
@@ -59,6 +83,9 @@ with open(FILE, 'r') as f:
     conf = yaml.safe_load(f)
 
 aggregators = create_aggregators(conf['aggregator'])
+
+if 'modifier' in conf:
+    aggregators.update(create_modifiers(aggregators, conf['modifier']))
 
 index = []
 

@@ -113,7 +113,9 @@ def load_data(name, output, description = None, clean = False, force_filename = 
         if clean:
             clean_output_dir(output, filename)
 
-    ds = xr.load_dataset(target, engine='cfgrib')
+    # we drop heightAboveGround to allow 2m and 10m values to be merged down to one dataset
+    ds = xr.load_dataset(target, engine='cfgrib', drop_variables='heightAboveGround')
+
     if description is not None:
         ds.attrs['_description'] = description
     return ds
