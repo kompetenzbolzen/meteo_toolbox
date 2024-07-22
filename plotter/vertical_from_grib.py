@@ -86,14 +86,16 @@ def _plot(data, output, name, lat=None, lon=None, analysis=None):
                 'file': outname,
                 'init': init_str,
                 'valid': valid_str,
-                'valid_offset': hours_since_init_str
+                'valid_offset': hours_since_init_str,
+                'display_name': name,
+                'id': name
             }
         )
 
     with open(os.path.join(output, f'skewt_{name}.index.json'), 'w') as f:
         f.write(json.dumps(index, indent=4))
 
-    return {'name': name, 'indexfile': f'skewt_{name}.index.json'}
+    return {'name': name, 'indexfile': f'skewt_{name}.index.json', 'list_title': 'Location'}
 
 if __name__ == '__main__':
     run(**config)

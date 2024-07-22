@@ -12,14 +12,17 @@ import misc
 
 HEIGHT = 13
 
-def run(data, plots, output='.'):
+def run(data, plots, output='.', name='meteogram'):
     misc.create_output_dir(output)
     index = []
 
     for plot in plots:
         index.append(_plot(data, output, **plot))
 
-    return index
+    with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
+        f.write(json.dumps(index, indent=4))
+
+    return [{ 'name': name, 'indexfile': f'{name}.index.json', 'list_title': 'Location' }]
 
 def _get_next_subplot(size, counter=0):
     ret = (counter + 1, counter + size)
@@ -50,7 +53,7 @@ def _add_temp_dewpoint(ax, data):
     ### Temp + Dewpoint
     ax.plot(data.valid_time, data.t2m.metpy.convert_units('degC').transpose(), color='red', label='Temperature (2m)')
     ax.plot(data.valid_time, mpcalc.dewpoint_from_relative_humidity(data.t2m, data.r2).transpose(), color='blue', label='Dewpoint (2m)')
-    ax.plot(data.valid_time, data.sel(isobaricInhPa=850.0).t.metpy.convert_units('degC').transpose(), color='grey', label='Tempreature (850hPa)')
+    ax.plot(data.valid_time, data.sel(isobaricInhPa=850.0).t.metpy.convert_units('degC').transpose(), color='grey', label='Temperature (850hPa)')
     ax.set_ylabel('Temperature [degC]')
     ax.legend(loc='lower right')
 
@@ -150,17 +153,12 @@ def _plot(data, output, name, lat, lon):
     plt.savefig(os.path.join(output, outname))
     plt.close('all')
 
-    index = []
-    index.append(
+    return (
         {
             'file': outname,
             'init': init_str,
             'valid': init_str,
-            'valid_offset': '00'
-        }
-    )
-
-    with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
-        f.write(json.dumps(index, indent=4))
-
-    return { 'name': name, 'indexfile': f'{name}.index.json' }
+            'valid_offset': '00',
+            'display_name': name,
+            'id': name
+        })

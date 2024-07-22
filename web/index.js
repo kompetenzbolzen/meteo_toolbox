@@ -17,18 +17,18 @@ function httpGetAsync(url, callback)
     xmlHttp.send(null);
 }
 
-function loadIndexFromJson(raw_text) {
+function loadIndexFromJson(raw_text, title) {
 	index_obj = JSON.parse(raw_text)
 	//TODO pass index here. that would be cleaner than public vars.
-	build_interface(index_obj);
+	build_interface(index_obj, title);
 }
 
-function build_indexlist(index_obj) {
+function build_indexlist(index_obj, display_name) {
 	div = document.createElement('div');
 	div.classList.add('index');
 
 	title = document.createElement('h4');
-	title.innerText = 'INIT+';
+	title.innerText = display_name;
 	div.appendChild(title);
 
 	list = document.createElement('ul');
@@ -41,7 +41,7 @@ function build_indexlist(index_obj) {
 		a.setAttribute('href', '');// data_dir + '/' + map.file);
 		a.setAttribute('mapfile', map.file);
 		a.onclick = indexlink_click;
-		a.innerText = map.valid_offset;
+		a.innerText = map.display_name;
 		a.id = map.file;
 
 		li = document.createElement('li');
@@ -62,7 +62,9 @@ function indexlink_click(e) {
 function productlink_click(e) {
 	clear_interface();
 
-	httpGetAsync(data_dir + '/' + this.getAttribute('indexfile'), loadIndexFromJson);
+	var list_title = this.getAttribute('list_title');
+
+	httpGetAsync(data_dir + '/' + this.getAttribute('indexfile'), function(a){ loadIndexFromJson(a,list_title);});
 	return false;
 }
 
@@ -78,8 +80,8 @@ function build_mapframe() {
 	return div;
 }
 
-function build_interface(index_obj) {
-	index = build_indexlist(index_obj);
+function build_interface(index_obj, display_name) {
+	index = build_indexlist(index_obj, display_name);
 	mapframe = build_mapframe();
 
 	document.body.appendChild(index);
@@ -111,6 +113,7 @@ function build_product_index(raw_text) {
 		a.classList.add('link');
 		a.setAttribute('href', '');// data_dir + '/' + map.file);
 		a.setAttribute('indexfile', product.indexfile);
+		a.setAttribute('list_title', product.list_title);
 		a.onclick = productlink_click;
 		a.innerText = product.name;
 		a.id = product.indexfile;

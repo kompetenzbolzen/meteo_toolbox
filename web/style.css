@@ -1,7 +1,7 @@
 :root {
 	--dummy: white;
-	--indexwidth: 100px;
-	--productindex-width: 250px;
+	--indexwidth: 250px;
+	--productindex-width: 150px;
 }
 
 body {
