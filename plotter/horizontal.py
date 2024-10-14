@@ -88,7 +88,7 @@ def _plot(data, output, name, layers, area = None):
                 'init': init_str,
                 'valid': valid_str,
                 'valid_offset': hours_since_init_str,
-                'display_name': name,
+                'display_name': hours_since_init_str,
                 'id': name
             }
         )
