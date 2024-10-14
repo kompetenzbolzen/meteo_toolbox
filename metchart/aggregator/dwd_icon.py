@@ -13,7 +13,7 @@ import subprocess
 
 import xarray as xr
 
-import misc
+from . import misc
 
 BASE='https://opendata.dwd.de/weather/nwp'
 

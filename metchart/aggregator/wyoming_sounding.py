@@ -12,7 +12,7 @@ import numpy as np
 from metpy.units import units
 import metpy.calc as mpcalc
 
-import misc
+from .. import misc
 
 def get_current_run():
     date=(datetime.date.today() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')

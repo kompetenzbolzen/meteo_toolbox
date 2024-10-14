@@ -1,0 +1,24 @@
+[project]
+name = "metchart"
+version = "0.0.1"
+dependencies = [
+	"metpy",
+	"xarray",
+	"cfgrib",
+	"pyyaml",
+	"cartopy"
+]
+description = "declarative weather chart plotter"
+readme = "Readme.md"
+
+[project.scripts]
+metchart = "metchart.run:main"
+
+[tool.setuptools.packages.find]
+include = [
+	"metchart"
+]
+
+[build-system]
+requires = ['setuptools >= 61.0']
+build-backend = "setuptools.build_meta"
