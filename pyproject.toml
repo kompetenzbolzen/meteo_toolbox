@@ -10,6 +10,7 @@ dependencies = [
 ]
 description = "declarative weather chart plotter"
 readme = "Readme.md"
+license = {"file" = "LICENSE"}
 
 [project.scripts]
 metchart = "metchart.run:main"
