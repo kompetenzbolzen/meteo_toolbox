@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot
 
-import misc
+from . import misc
 
 config = {
     'source': 'dwd_icon-eu/combined.grib2',

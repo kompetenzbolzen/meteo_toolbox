@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import metpy.calc as mpcalc
 
-import misc
+from .. import misc
 
 HEIGHT = 13
 
@@ -68,7 +68,7 @@ def _add_convective_clouds(ax, data):
     ax.set_ylabel('Convective Clouds Height [km]')
     ax.bar(data.valid_time, alpha=0.5,
             bottom=data.HBAS_CON.metpy.convert_units('km').transpose(),
-            height=(data.hcct.metpy.convert_units('km')-data.HBAS_CON.metpy.convert_units('km')).transpose(),
+            height=(data.HTOP_CON.metpy.convert_units('km')-data.HBAS_CON.metpy.convert_units('km')).transpose(),
             align='edge', width=np.timedelta64(3, 'h'))
 
 def _add_precip(ax, data):

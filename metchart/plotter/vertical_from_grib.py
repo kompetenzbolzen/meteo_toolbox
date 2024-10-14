@@ -13,7 +13,7 @@ import numpy as np
 
 import skewt
 
-import misc
+from . import misc
 
 config = {
     'source':'dwd_icon-eu/combined.grib2',
