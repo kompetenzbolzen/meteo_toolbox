@@ -17,6 +17,7 @@ metchart = "metchart.run:main"
 
 [tool.setuptools.packages.find]
 where = ["metchart/"]
+include = ["metchart.*"]
 
 [build-system]
 requires = ['setuptools >= 61.0']
