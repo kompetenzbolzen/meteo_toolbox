@@ -11,9 +11,9 @@ from metpy.units import units
 import metpy.calc as mpcalc
 import numpy as np
 
-import skewt
+from .. import skewt
 
-from . import misc
+from .. import misc
 
 config = {
     'source':'dwd_icon-eu/combined.grib2',
