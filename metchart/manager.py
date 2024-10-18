@@ -4,6 +4,8 @@ import yaml
 import json
 import os
 
+import importlib
+
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool
 
@@ -59,7 +61,7 @@ class Manager:
 
             classname = cfg['module']
             del cfg['module']
-            module = __import__(classname, fromlist=[None])
+            module = importlib.import_module(classname)
 
             then(key if not anonymous else None, module, cfg)
 
