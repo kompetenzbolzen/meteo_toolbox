@@ -16,8 +16,7 @@ license = {"file" = "LICENSE"}
 metchart = "metchart.run:main"
 
 [tool.setuptools.packages.find]
-where = ["metchart/"]
-include = ["metchart.*"]
+include = ["metchart", "metchart.*"]
 
 [build-system]
 requires = ['setuptools >= 61.0']
