@@ -6,7 +6,7 @@ dependencies = [
 	"xarray",
 	"cfgrib",
 	"pyyaml",
-	"cartopy"
+	"cartopy",
 ]
 description = "declarative weather chart plotter"
 readme = "Readme.md"
@@ -16,9 +16,7 @@ license = {"file" = "LICENSE"}
 metchart = "metchart.run:main"
 
 [tool.setuptools.packages.find]
-include = [
-	"metchart"
-]
+where = ["metchart/"]
 
 [build-system]
 requires = ['setuptools >= 61.0']
