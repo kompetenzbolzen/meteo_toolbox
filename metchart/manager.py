@@ -29,7 +29,8 @@ class Manager:
         index = ThreadPool(self._thread_count).map(lambda p: p['module'].run(**p['cfg']), self._plotters)
 
         with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
-            f.write(json.dumps(index, indent=4))
+            # NOTE index needs to be flattened.
+            f.write(json.dumps([x for xs in index for x in xs], indent=4))
 
     def _load(self):
         with open(self._filename, 'r') as f:
