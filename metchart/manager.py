@@ -7,7 +7,6 @@ import os
 import importlib
 
 from multiprocessing import cpu_count
-from multiprocessing.pool import ThreadPool
 
 
 def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
@@ -28,7 +27,7 @@ class Manager:
         self._parse()
 
     def run_plotters(self):
-        index = ThreadPool(self._thread_count).map(lambda p: p['module'].run(**p['cfg']), self._plotters)
+        index = map(lambda p: p['module'].run(**p['cfg']), self._plotters)
 
         with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
             # NOTE index needs to be flattened.
