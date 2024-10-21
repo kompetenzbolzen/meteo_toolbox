@@ -95,7 +95,7 @@ def _plot(data, output, name, lat=None, lon=None, analysis=None):
     with open(os.path.join(output, f'skewt_{name}.index.json'), 'w') as f:
         f.write(json.dumps(index, indent=4))
 
-    return {'name': name, 'indexfile': f'skewt_{name}.index.json', 'list_title': 'Location'}
+    return {'name': name, 'indexfile': f'skewt_{name}.index.json', 'list_title': 'INIT+'}
 
 if __name__ == '__main__':
     run(**config)
