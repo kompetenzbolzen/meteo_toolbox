@@ -6,7 +6,7 @@ import xarray as xr
 
 import numpy as np
 import matplotlib.pyplot as plt
-from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot
+from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot, BarbPlot
 
 from .. import misc
 
@@ -108,6 +108,10 @@ def _layer(data, layertype, **kwargs):
         },
         'contour': {
             'obj': ContourPlot,
+            'defaults': {}
+        },
+        'barbs': {
+            'obj': BarbPlot,
             'defaults': {}
         }
     }
