@@ -48,6 +48,8 @@ class IconAggregator(Aggregator):
 
     def _init(self):
         self._dataset = None
+        self._run = None
+        self._date = None
 
     def _load_config(self, model: Literal['icon', 'icon-eu', 'icon-d2'],
                      name: str, pressure_levels: list[int], steps: list[int],
@@ -64,62 +66,61 @@ class IconAggregator(Aggregator):
         self._caps_in_filename = False if model == 'icon-d2' else True
 
     def _aggregate(self) -> None:
-        run, date = get_current_run()
-        filelist = self._list_needed_files(run, date)
+        self._run, self._date = get_current_run()
+        filelist = self._list_needed_files()
 
         for _ in ThreadPool(cpu_count()).map(download_url, filelist):
             pass
 
-        # NOTE open_mfdataset needs dask. do we want that?
-        _, gribs = zip(*filelist)
-        gribs = list(gribs)
-        #self._dataset = xr.open_mfdataset(gribs, engine='cfgrib', coords='all')
-        #self._dataset = xr.open_mfdataset(list(gribs), engine='cfgrib', drop_variables='heightAboveGround', coords='different')
+        # TODO bit ugly, eh?
+        ds_vars = []
+        for var in self._needed_variables:
+            ds_steps = []
+            for step in self._steps:
+                if self._MAPPING[var]['plev']:
+                    ds_steps.append(xr.concat(
+                            [xr.open_dataset(os.path.join(self._download_dir,f)) for f in [self._construct_filename(step,var,l) for l in self._levels]],
+                            dim='icobaricInhPa'
+                            ))
+                else:
+                    ds_steps.append(xr.open_dataset(os.path.join(self._download_dir,self._construct_filename(step,var))))
+            ds_vars.append(xr.concat(ds_steps, dim='step'))
+        self._dataset = xr.merge(ds_vars)
 
-        # TODO Concat alon dimensions manually
-        # 1. along pressure (only for plev)
-        # 2. along step
-        # 3. merge variables together
-        # Check, if memory use is OK!
-        self._dataset = xr.concat(
-                [xr.open_dataset(g,drop_variables='heightAboveGround') for g in gribs],
-                'step',
-                coords='minimal'
-                )
 
         # TODO is this needed still?
         if self._description is not None:
             self._dataset.attrs['_description'] = self._description
 
-    def _list_needed_files(self, run, date) -> list:
+    def _list_needed_files(self) -> list:
         filelist = []
 
-        for step, level, var in itertools.product(
-                [f'{s:03d}' for s in self._steps],
-                self._levels,
-                [v for v in self._needed_variables if self._MAPPING[v]['plev']] ):
-            v = self._MAPPING[var]['path']
-            v_caps = v.upper() if self._caps_in_filename else v
-            filename = '{}_{}_regular-lat-lon_pressure-level_{}{}_{}_{}_{}.grib2'.format(
-                       self._model, self._MODEL_SUFFIX[self._model],
-                       date, run, step, level, v_caps )
-            URL = f'{BASE}/{self._model}/grib/{run}/{v}/{filename}.bz2'
-
-            filelist.append((URL, os.path.join(self._download_dir, filename)))
-
-        for step, var in itertools.product(
-                [f'{s:03d}' for s in self._steps],
-                [v for v in self._needed_variables if not self._MAPPING[v]['plev']] ):
-            v = self._MAPPING[var]['path']
-            v_caps = v.upper() if self._caps_in_filename else v
-            filename = '{}_{}_regular-lat-lon_single-level_{}{}_{}_{}.grib2'.format(
-                       self._model, self._MODEL_SUFFIX[self._model],
-                       date, run, step, v_caps )
-            URL = f'{BASE}/{self._model}/grib/{run}/{v}/{filename}.bz2'
-
-            filelist.append((URL, os.path.join(self._download_dir, filename)))
+        for var, step in itertools.product(self._needed_variables, self._steps):
+            url_base = f'{BASE}/{self._model}/grib/{self._run}/{self._MAPPING[var]['path']}'
+            if self._MAPPING[var]['plev']:
+                l =  [self._construct_filename(step, var, l) for l in self._levels]
+                filelist += [(f'{url_base}/{f}.bz2', os.path.join(self._download_dir,f)) for f in l]
+            else:
+                f = self._construct_filename(step, var)
+                filelist.append((f'{url_base}/{f}.bz2', os.path.join(self._download_dir,f)))
 
         return filelist
+
+    def _construct_filename(self, step, var, level = None) -> str:
+        run, date = self._run, self._date
+        step_str = f'{step:03d}'
+        v = self._MAPPING[var]['path']
+        v_caps = v.upper() if self._caps_in_filename else v
+
+        if level is not None:
+            return '{}_{}_regular-lat-lon_pressure-level_{}{}_{}_{}_{}.grib2'.format(
+                self._model, self._MODEL_SUFFIX[self._model],
+                date, run, step_str, level, v_caps )
+        return '{}_{}_regular-lat-lon_single-level_{}{}_{}_{}.grib2'.format(
+            self._model, self._MODEL_SUFFIX[self._model],
+            date, run, step_str, v_caps )
+
+
 
     def _query_data(self, var: Variable, query: list[tuple[Variable,object]]) -> xr.DataArray:
         return xr.DataArray()
