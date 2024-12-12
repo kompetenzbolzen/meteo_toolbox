@@ -6,6 +6,8 @@ import requests
 import os
 import itertools
 
+import cfgrib
+
 import bz2
 
 from multiprocessing import cpu_count
@@ -19,8 +21,6 @@ from ..aggregator import Aggregator, Variable, Dimension
 from typing import Literal, Union
 
 BASE='https://opendata.dwd.de/weather/nwp'
-
-# NOTE: open_mfdataset() to open multiple gribs
 
 class IconAggregator(Aggregator):
     PROVIDES = [
@@ -70,8 +70,22 @@ class IconAggregator(Aggregator):
         for _ in ThreadPool(cpu_count()).map(download_url, filelist):
             pass
 
+        # NOTE open_mfdataset needs dask. do we want that?
         _, gribs = zip(*filelist)
-        self._dataset = xr.open_mfdataset(gribs, engine='cfgrib')
+        gribs = list(gribs)
+        #self._dataset = xr.open_mfdataset(gribs, engine='cfgrib', coords='all')
+        #self._dataset = xr.open_mfdataset(list(gribs), engine='cfgrib', drop_variables='heightAboveGround', coords='different')
+
+        # TODO Concat alon dimensions manually
+        # 1. along pressure (only for plev)
+        # 2. along step
+        # 3. merge variables together
+        # Check, if memory use is OK!
+        self._dataset = xr.concat(
+                [xr.open_dataset(g,drop_variables='heightAboveGround') for g in gribs],
+                'step',
+                coords='minimal'
+                )
 
         # TODO is this needed still?
         if self._description is not None:
@@ -129,6 +143,10 @@ def download_url(args):
         return
 
     r = requests.get(url)
+    if not r.ok:
+        print(f'Failed Request to download {dest}:\n')
+        print(f'URL {url}, {dest}:\n')
+        return
     try:
         with open(dest, 'wb') as f:
             f.write(bz2.decompress(r.content))
@@ -143,3 +161,16 @@ def clean_output_dir(directory, target):
 
     for f in to_delete:
         os.unlink(os.path.join(directory, f))
+
+def test():
+    a = IconAggregator(cache_dir='./asdf')
+    a.load_config(
+            model='icon-eu', name='test', pressure_levels = [1000,850,500],
+            steps = [0,3,6,9,12,15,18,21,24])
+    a.add_needed(Variable.U_3D)
+    a.add_needed(Variable.V_3D)
+    a.add_needed(Variable.U_SURFACE)
+    a.add_needed(Variable.V_SURFACE)
+
+    a.aggregate()
+    print(a._dataset)
