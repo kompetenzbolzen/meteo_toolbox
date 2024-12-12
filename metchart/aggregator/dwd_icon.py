@@ -6,8 +6,6 @@ import requests
 import os
 import itertools
 
-import cfgrib
-
 import bz2
 
 from multiprocessing import cpu_count

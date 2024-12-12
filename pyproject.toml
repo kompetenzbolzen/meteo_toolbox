@@ -8,7 +8,6 @@ dependencies = [
 	"pyyaml",
 	"cartopy",
 	"bz2",
-	"dask",
 ]
 description = "declarative weather chart plotter"
 readme = "Readme.md"
