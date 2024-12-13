@@ -39,9 +39,10 @@ class Dimension(StrEnum):
 class Aggregator():
     PROVIDES=[]
 
-    def __init__(self, cache_dir: os.PathLike):
+    def __init__(self, cache_dir: os.PathLike, name: str):
         self._needed_variables = []
         self._cache_dir = cache_dir
+        self._name = name
         self._init()
 
     def load_config(self, *args, **kwargs) -> None:

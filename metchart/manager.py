@@ -22,6 +22,7 @@ class Manager:
         self._filename = filename
         self._output_dir = './web/data'
         self._thread_count = max(cpu_count()-1, 1)
+        self._cache_dir = './metchart_cache'
 
         self._load()
         self._parse()
@@ -65,7 +66,8 @@ class Manager:
             then(key if not anonymous else None, module, cfg)
 
     def _load_aggregator(self, name: str, module, cfg):
-        self.aggregators[name] = module.load_data(name=name, **cfg)
+        self.aggregators[name] = module(self._cache_dir, name)
+        self.aggregators[name].load_config(**cfg)
 
     def _load_modifier(self, name: str, module, cfg):
         if 'aggregator' in cfg:

@@ -50,9 +50,8 @@ class IconAggregator(Aggregator):
         self._date = None
 
     def _load_config(self, model: Literal['icon', 'icon-eu', 'icon-d2'],
-                     name: str, pressure_levels: list[int], steps: list[int],
+                     pressure_levels: list[int], steps: list[int],
                      description: Union[None,str] = None) -> None:
-        self._name = name
         self._description = description
         self._model = model
         self._levels = pressure_levels
