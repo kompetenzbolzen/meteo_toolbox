@@ -34,6 +34,9 @@ class Manager:
             # NOTE index needs to be flattened.
             f.write(json.dumps([x for xs in index for x in xs], indent=4))
 
+    def aggregate_data(self):
+        pass
+
     def _load(self):
         with open(self._filename, 'r') as f:
             self._raw_config = yaml.safe_load(f)
@@ -42,7 +45,8 @@ class Manager:
         run_if_present('output', self._raw_config, self._parse_output)
         run_if_present('thread_count', self._raw_config, self._parse_thread_count)
         run_if_present('aggregator', self._raw_config, self._parse_module, self._load_aggregator)
-        run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
+        # TODO reactivate
+        #run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
 
         run_if_present('plotter', self._raw_config, self._parse_module, self._prepare_plotter)
 
@@ -59,11 +63,12 @@ class Manager:
                 print(f'ERROR: {key} is missing the "module" keyword.')
                 continue
 
-            classname = cfg['module']
+            modname, classname = cfg['module'].rsplit('.',1)
             del cfg['module']
-            module = importlib.import_module(classname)
+            module = importlib.import_module(modname)
+            class_obj = getattr(module,classname)
 
-            then(key if not anonymous else None, module, cfg)
+            then(key if not anonymous else None, class_obj, cfg)
 
     def _load_aggregator(self, name: str, module, cfg):
         self.aggregators[name] = module(self._cache_dir, name)
@@ -84,10 +89,12 @@ class Manager:
         self.aggregators[name] = module.run(**cfg)
 
     def _prepare_plotter(self, _name, module, cfg):
+        # TODO this needs to change
         if 'aggregator' in cfg:
             cfg['data'] = self.aggregators[cfg['aggregator']]
             del cfg['aggregator']
 
+        # TODO we need to prepare plotters here and find out what they need
         self._plotters.append({
                 'module': module,
                 'cfg': cfg

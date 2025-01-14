@@ -7,7 +7,6 @@ dependencies = [
 	"cfgrib",
 	"pyyaml",
 	"cartopy",
-	"bz2",
 ]
 description = "declarative weather chart plotter"
 readme = "Readme.md"
@@ -15,6 +14,7 @@ license = {"file" = "LICENSE"}
 
 [project.scripts]
 metchart = "metchart.run:main"
+metchart-debug = "metchart.debug:main"
 
 [tool.setuptools.packages.find]
 include = ["metchart", "metchart.*"]
