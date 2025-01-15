@@ -17,7 +17,7 @@ def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
 class Manager:
     def __init__(self, filename: str = 'metchart.yaml'):
         self.aggregators={}
-        self._plotters=[]
+        self.plotters={}
 
         self._filename = filename
         self._output_dir = './web/data'
@@ -28,13 +28,24 @@ class Manager:
         self._parse()
 
     def run_plotters(self):
-        index = map(lambda p: p['module'].run(**p['cfg']), self._plotters)
-
-        with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
-            # NOTE index needs to be flattened.
-            f.write(json.dumps([x for xs in index for x in xs], indent=4))
+        for key in self.plotters:
+            plt = self.plotters[key]
+            plt.plot()
 
     def aggregate_data(self):
+        needed = []
+        for key in self.plotters:
+            plt = self.plotters[key]
+            needed.extend(plt.report_needed_variables())
+
+        for key in self.aggregators:
+            agg = self.aggregators[key]
+            for n in needed:
+                agg.add_needed(n)
+            agg.aggregate()
+
+    def _aggregator_callback(self):
+        # TODO Implement
         pass
 
     def _load(self):
@@ -44,20 +55,16 @@ class Manager:
     def _parse(self):
         run_if_present('output', self._raw_config, self._parse_output)
         run_if_present('thread_count', self._raw_config, self._parse_thread_count)
+
         run_if_present('aggregator', self._raw_config, self._parse_module, self._load_aggregator)
         # TODO reactivate
         #run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
 
         run_if_present('plotter', self._raw_config, self._parse_module, self._prepare_plotter)
 
-    def _parse_module(self, data, then: Callable):
-        # TODO abstraction prbly off. anonymous reeks
-        anonymous = False
-        if type(data) is list:
-            anonymous = True
-
+    def _parse_module(self, data: dict, then: Callable):
         for key in data:
-            cfg = data[key] if not anonymous else key
+            cfg = data[key]
 
             if 'module' not in cfg:
                 print(f'ERROR: {key} is missing the "module" keyword.')
@@ -68,37 +75,15 @@ class Manager:
             module = importlib.import_module(modname)
             class_obj = getattr(module,classname)
 
-            then(key if not anonymous else None, class_obj, cfg)
+            then(key, class_obj, cfg)
 
     def _load_aggregator(self, name: str, module, cfg):
         self.aggregators[name] = module(self._cache_dir, name)
         self.aggregators[name].load_config(**cfg)
 
-    def _load_modifier(self, name: str, module, cfg):
-        if 'aggregator' in cfg:
-            if type(cfg['aggregator']) == list:
-                cfg['data'] = []
-                for ag in cfg['aggregator']:
-                    cfg['data'].append(self.aggregators[ag])
-
-                del cfg['aggregator']
-            else:
-                cfg['data'] = self.aggregators[cfg['aggregator']]
-                del cfg['aggregator']
-
-        self.aggregators[name] = module.run(**cfg)
-
-    def _prepare_plotter(self, _name, module, cfg):
-        # TODO this needs to change
-        if 'aggregator' in cfg:
-            cfg['data'] = self.aggregators[cfg['aggregator']]
-            del cfg['aggregator']
-
-        # TODO we need to prepare plotters here and find out what they need
-        self._plotters.append({
-                'module': module,
-                'cfg': cfg
-        })
+    def _prepare_plotter(self, name, module, cfg):
+        self.plotters[name] = module(self._cache_dir, name, self._aggregator_callback)
+        self.plotters[name].load_config(**cfg)
 
     def _parse_output(self, data: str):
         self._output_dir = data

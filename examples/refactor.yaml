@@ -7,3 +7,6 @@ aggregator:
     model: icon-eu
     pressure_levels: [1000, 950, 900, 800, 700, 600, 500, 400, 300, 200]
     steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
+plotter:
+  testplotter:
+    module: metchart.plotter.DebugPlotter
