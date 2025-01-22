@@ -23,9 +23,9 @@ plotter:
       - name: antersberg
         long_name: Flugplatz Antersberg
         query:
-          lat: 47.96
-          lon: 11.99
+          LATITUDE: 47.96
+          LONGITUDE: 11.99
       - name: munich
         query:
-          lat: 48.16
-          lon: 11.57
+          LATITUDE: 48.16
+          LONGITUDE: 11.57
