@@ -120,9 +120,11 @@ class IconAggregator(Aggregator):
 
 
     def _query_data(self, var: Variable, query: list[tuple[Variable,object]]) -> xr.DataArray:
+        print("Not Implemented")
         return xr.DataArray()
 
     def _query_dimensions(self, var: Variable) -> list[Dimension]:
+        print("Not Implemented")
         return []
 
 def get_current_run():

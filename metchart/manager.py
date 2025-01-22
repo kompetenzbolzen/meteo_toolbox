@@ -6,7 +6,18 @@ import os
 
 import importlib
 
+import functools
+
 from multiprocessing import cpu_count
+
+class ManagerException(Exception):
+    pass
+
+class ManagerAggregatorNotFoundException(Exception):
+    pass
+
+class ManagerPlotterNotFoundException(Exception):
+    pass
 
 
 def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
@@ -29,24 +40,42 @@ class Manager:
 
     def run_plotters(self):
         for key in self.plotters:
-            plt = self.plotters[key]
+            plt = self.plotters[key]['object']
             plt.plot()
 
     def aggregate_data(self):
-        needed = []
+        needed = {}
+
         for key in self.plotters:
-            plt = self.plotters[key]
-            needed.extend(plt.report_needed_variables())
+            plt = self.plotters[key]['object']
+            cfg = self.plotters[key]['config']
+
+            if 'aggregator' not in cfg:
+                continue
+            agg = cfg['aggregator']
+            if agg not in self.aggregators:
+                raise ManagerAggregatorNotFoundException(agg)
+
+            if agg not in needed:
+                needed[agg] = []
+
+            needed[agg].extend(plt.report_needed_variables())
 
         for key in self.aggregators:
             agg = self.aggregators[key]
-            for n in needed:
+            for n in needed[key]:
                 agg.add_needed(n)
             agg.aggregate()
 
-    def _aggregator_callback(self):
-        # TODO Implement
-        pass
+    def _aggregator_callback(self, caller_name: str):
+        if caller_name not in self.plotters:
+            raise ManagerPlotterNotFoundException(caller_name)
+
+        if 'aggregator' not in self.plotters[caller_name]['config']:
+            raise ManagerAggregatorNotFoundException("No aggregator was defined in the config")
+        agg = self.plotters[caller_name]['config']['aggregator']
+
+        return self.aggregators[agg].query_data
 
     def _load(self):
         with open(self._filename, 'r') as f:
@@ -71,19 +100,31 @@ class Manager:
                 continue
 
             modname, classname = cfg['module'].rsplit('.',1)
-            del cfg['module']
             module = importlib.import_module(modname)
             class_obj = getattr(module,classname)
 
             then(key, class_obj, cfg)
 
-    def _load_aggregator(self, name: str, module, cfg):
+    def _load_aggregator(self, name: str, module, cfg: dict):
+        # TODO feels a bit hacky
+        if 'module' in cfg:
+            del cfg['module']
+
         self.aggregators[name] = module(self._cache_dir, name)
         self.aggregators[name].load_config(**cfg)
 
     def _prepare_plotter(self, name, module, cfg):
-        self.plotters[name] = module(self._cache_dir, name, self._aggregator_callback)
-        self.plotters[name].load_config(**cfg)
+        self.plotters[name] = {
+                "object" : module(
+                    self._cache_dir, name,
+                    functools.partial(self._aggregator_callback,name) ),
+                "config" : cfg
+            }
+
+        if 'config' not in cfg:
+            cfg['config'] = {}
+
+        self.plotters[name]['object'].load_config(**cfg['config'])
 
     def _parse_output(self, data: str):
         self._output_dir = data

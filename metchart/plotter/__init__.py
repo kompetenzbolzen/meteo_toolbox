@@ -17,6 +17,7 @@ class Plotter:
         self._aggregator_callback = aggregator_callback
         # TODO typehint for path
         self._cache_dir = cache_dir
+        self._init()
 
     def load_config(self, *args, **kwargs) -> None:
         self._load_config(*args, **kwargs)
@@ -27,6 +28,9 @@ class Plotter:
 
     def plot(self):
         return self._plot()
+
+    def _init(self):
+        pass
 
     'to implement'
     def _load_config(self, *args, **kwargs) -> None:
@@ -39,11 +43,14 @@ class Plotter:
         raise PlotterNotImplementedException('_plot()')
 
 class DebugPlotter(Plotter):
-    def _load_config(self):
-        pass
+
+    def _load_config(self, **kwargs):
+        print(kwargs)
+        self._cfg = kwargs
 
     def _report_needed_variables(self) -> list[Variable]:
         return [Variable.U_SURFACE, Variable.V_SURFACE]
 
     def _plot(self):
         print("I am plotting")
+        print(self._aggregator_callback()(Variable.U_SURFACE,[]))

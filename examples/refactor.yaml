@@ -10,3 +10,22 @@ aggregator:
 plotter:
   testplotter:
     module: metchart.plotter.DebugPlotter
+    config:
+      this: is
+      a:
+        - list
+        - of
+      configuration: variables
+    aggregator: icon_eu
+    along_dimensions:
+      - TIME
+    for_queries:
+      - name: antersberg
+        long_name: Flugplatz Antersberg
+        query:
+          lat: 47.96
+          lon: 11.99
+      - name: munich
+        query:
+          lat: 48.16
+          lon: 11.57
