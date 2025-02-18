@@ -10,6 +10,9 @@ from metpy.plots import MapPanel, PanelContainer, RasterPlot, ContourPlot, BarbP
 
 from .. import misc
 
+from . import Plotter
+from ..aggregator import Variable
+
 config = {
     'source': 'dwd_icon-eu/combined.grib2',
     'plots': [
@@ -33,6 +36,28 @@ config = {
         },
     ]
 }
+
+class HorizontalPlotter (Plotter):
+    def _init(self):
+        self._plot_configs = {}
+
+    def _load_config(self, layers: list):
+        self._layer_configs = layers
+
+    def _report_needed_variables(self) -> list[Variable]:
+        ret = []
+        for layer in self._layer_configs:
+            field = layer['field']
+            if not field in Variable:
+                print('UNKNOWN VAR!!!!')
+                continue
+            ret.append(Variable[field])
+        return ret
+
+    def _plot(self):
+        ds = self._aggregator_callback()._dataset
+        print("I am plotting")
+        print(self._aggregator_callback()(Variable.U_SURFACE,[]))
 
 def run(data, plots, output='.'):
     misc.create_output_dir(output)
