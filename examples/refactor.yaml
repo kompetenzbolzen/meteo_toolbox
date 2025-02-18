@@ -8,6 +8,12 @@ aggregator:
     pressure_levels: [1000, 950, 900, 800, 700, 600, 500, 400, 300, 200]
     steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
 plotter:
+  horizontal:
+    module: metchart.plotter.horizontal.HorizontalPlotter
+    config:
+      layers:
+        layertype: raster
+        field: u_surface
   testplotter:
     module: metchart.plotter.DebugPlotter
     config:
