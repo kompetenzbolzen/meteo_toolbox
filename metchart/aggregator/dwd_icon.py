@@ -29,13 +29,22 @@ class IconAggregator(Aggregator):
         Variable.V_SURFACE,
     ]
 
-    _MAPPING = {
+    _VAR_MAPPING = {
             Variable.TEMPERATURE_3D: {'path': 't', 'data':'t', 'plev': True},
             Variable.U_3D: {'path': 'u', 'data':'u', 'plev': True},
             Variable.V_3D: {'path': 'v', 'data':'v', 'plev': True},
             Variable.U_SURFACE:{'path': 'u_10m', 'data':'u10', 'plev': False},
             Variable.V_SURFACE:{'path': 'v_10m', 'data':'v10', 'plev': False},
             Variable.GUST_SURFACE:{'path': 'vmax_10m', 'data':'fg10', 'plev': False},
+    }
+
+    _DIM_MAPPING = {
+            # NOTE lat/lon are already the right name
+            # Dimension.LATITUDE: 'latitude',
+            # Dimension.LONGITUDE: 'longitude',
+            # TODO pressure, time
+            # Dimension.PRESSURE: None,
+            # Dimension.TIME: 'valid_time',
     }
 
     _MODEL_SUFFIX = {
@@ -74,7 +83,7 @@ class IconAggregator(Aggregator):
         for var in self._needed_variables:
             ds_steps = []
             for step in self._steps:
-                if self._MAPPING[var]['plev']:
+                if self._VAR_MAPPING[var]['plev']:
                     ds_steps.append(xr.concat(
                             [xr.open_dataset(os.path.join(self._download_dir,f)) for f in [self._construct_filename(step,var,l) for l in self._levels]],
                             dim='icobaricInhPa'
@@ -89,12 +98,19 @@ class IconAggregator(Aggregator):
         if self._description is not None:
             self._dataset.attrs['_description'] = self._description
 
+        self._dataset = self._dataset.rename_vars(
+            { v['data']: k for k, v in self._VAR_MAPPING.items() if v['data'] in self._dataset }
+        )
+        self._dataset = self._dataset.rename_dims(
+            { v: k for k, v in self._DIM_MAPPING.items() if v in self._dataset }
+        )
+
     def _list_needed_files(self) -> list:
         filelist = []
 
         for var, step in itertools.product(self._needed_variables, self._steps):
-            url_base = f'{BASE}/{self._model}/grib/{self._run}/{self._MAPPING[var]['path']}'
-            if self._MAPPING[var]['plev']:
+            url_base = f'{BASE}/{self._model}/grib/{self._run}/{self._VAR_MAPPING[var]['path']}'
+            if self._VAR_MAPPING[var]['plev']:
                 l =  [self._construct_filename(step, var, l) for l in self._levels]
                 filelist += [(f'{url_base}/{f}.bz2', os.path.join(self._download_dir,f)) for f in l]
             else:
@@ -106,7 +122,7 @@ class IconAggregator(Aggregator):
     def _construct_filename(self, step, var, level = None) -> str:
         run, date = self._run, self._date
         step_str = f'{step:03d}'
-        v = self._MAPPING[var]['path']
+        v = self._VAR_MAPPING[var]['path']
         v_caps = v.upper() if self._caps_in_filename else v
 
         if level is not None:
