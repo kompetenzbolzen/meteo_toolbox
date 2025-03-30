@@ -36,15 +36,21 @@ class IconAggregator(Aggregator):
             Variable.U_SURFACE:{'path': 'u_10m', 'data':'u10', 'plev': False},
             Variable.V_SURFACE:{'path': 'v_10m', 'data':'v10', 'plev': False},
             Variable.GUST_SURFACE:{'path': 'vmax_10m', 'data':'fg10', 'plev': False},
+
+            Dimension.INIT_TIME:{'data': 'time'},
+            Dimension.TIME:{'data': 'step'},
     }
 
     _DIM_MAPPING = {
             # NOTE lat/lon are already the right name
             # Dimension.LATITUDE: 'latitude',
             # Dimension.LONGITUDE: 'longitude',
+            # NOTE: see set_index in _aggregate() to see how this works...
+            Dimension.TIME: 'step',
             # TODO pressure, time
+            # These are non-indexed dimensions, so not queryable
+            # see: https://github.com/pydata/xarray/issues/2028
             # Dimension.PRESSURE: None,
-            # Dimension.TIME: 'valid_time',
     }
 
     _MODEL_SUFFIX = {
@@ -89,7 +95,8 @@ class IconAggregator(Aggregator):
                             dim='icobaricInhPa'
                             ))
                 else:
-                    ds_steps.append(xr.open_dataset(os.path.join(self._download_dir,self._construct_filename(step,var))))
+                    ds_steps.append(xr.open_dataset(os.path.join(self._download_dir,self._construct_filename(step,var)))
+                                    ) # NOTE Maybe a bit hacky, but does the job
             ds_vars.append(xr.concat(ds_steps, dim='step'))
         self._dataset = xr.merge(ds_vars)
 
@@ -98,6 +105,7 @@ class IconAggregator(Aggregator):
         if self._description is not None:
             self._dataset.attrs['_description'] = self._description
 
+        self._dataset = self._dataset.set_index(step='valid_time')
         self._dataset = self._dataset.rename_vars(
             { v['data']: k for k, v in self._VAR_MAPPING.items() if v['data'] in self._dataset }
         )

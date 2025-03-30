@@ -10,21 +10,22 @@ aggregator:
 plotter:
   horizontal:
     module: metchart.plotter.horizontal.HorizontalPlotter
+    aggregator: icon_eu
     config:
       layers:
-        layertype: raster
-        field: u_surface
+        - layertype: raster
+          field: u_surface
   testplotter:
     module: metchart.plotter.DebugPlotter
+    aggregator: icon_eu
     config:
       this: is
       a:
         - list
         - of
       configuration: variables
-    aggregator: icon_eu
     along_dimensions:
-      - TIME
+      - time
     for_queries:
       - name: antersberg
         long_name: Flugplatz Antersberg

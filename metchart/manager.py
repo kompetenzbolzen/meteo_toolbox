@@ -117,7 +117,7 @@ class Manager:
         self.plotters[name] = {
                 "object" : module(
                     self._cache_dir, name,
-                    functools.partial(self._aggregator_callback,name) ),
+                    functools.partial(self._aggregator_callback, name) ),
                 "config" : cfg
             }
 

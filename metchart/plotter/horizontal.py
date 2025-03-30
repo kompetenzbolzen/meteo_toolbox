@@ -47,15 +47,12 @@ class HorizontalPlotter (Plotter):
     def _report_needed_variables(self) -> list[Variable]:
         ret = []
         for layer in self._layer_configs:
-            field = layer['field']
-            if not field in Variable:
-                print('UNKNOWN VAR!!!!')
-                continue
-            ret.append(Variable[field])
+            field = layer['field'].lower()
+            ret.append(Variable(field))
         return ret
 
     def _plot(self):
-        ds = self._aggregator_callback()._dataset
+        #ds = self._aggregator_callback()._dataset
         print("I am plotting")
         print(self._aggregator_callback()(Variable.U_SURFACE,[]))
 
