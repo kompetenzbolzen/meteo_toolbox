@@ -4,6 +4,7 @@ Aggregator
 from __future__ import annotations
 
 from enum import StrEnum, auto
+from typing import Iterable
 import xarray as xr
 
 import itertools
@@ -87,51 +88,40 @@ class Aggregator():
 
 
 class DataView():
-    def __init__(self, aggregator: Aggregator,
+    def __init__(self, dataset: xr.Dataset,
                  query: dict | None = None,
                  name: str | None = None,
                  long_name: str | None = None):
-        self._aggregator = aggregator
+        self._dataset = dataset
         self.query = query
         self.name = name
         self.long_name = long_name
 
     def get(self) -> xr.Dataset:
-        raise AggregatorNotImplementedException('get not implemented')
+        if self.query is not None:
+            return self._dataset.sel(** self.query)
+        return self._dataset
 
-    # TODO remove
-    @staticmethod
-    def along_dimensions(source: Aggregator | DataView, dimensions: list[Dimension]) -> list[DataView]:
-        raise AggregatorNotImplementedException('along_dimensions not implemented')
+    def for_queries(self, queries: list[dict]) -> Iterable[DataView]:
+        if len(queries) < 1:
+            yield self
 
-    # TODO remove
-    @staticmethod
-    def for_queries(source: Aggregator | DataView, queries: list[dict]) -> list[DataView]:
-        raise AggregatorNotImplementedException('for_queries not implemented')
+        for query in queries:
+            yield DataView(self.get(), **query)
 
-class DataViewIterator():
-    def __init__(self, aggregator: Aggregator,
-                 along_dimensions: list[Dimension]  = [],
-                 for_queries: list[dict] = []):
-        self._queries = for_queries
-        self._along_dimensions = along_dimensions
-        self._aggregator = aggregator
+    def along_dimensions(self, dimensions: list[Dimension]) -> Iterable[DataView]:
+        if len(dimensions) < 1:
+            yield self
 
-        self._counter = 0
+        for query_parts in itertools.product(*[
+                                        [{d:s} for s in self._dataset[d].values]
+                                        for d in dimensions
+                                     ]):
+            query = {}
+            for p in query_parts:
+                query.update(p)
+            yield DataView(self.get(), query=query,
+                           name=self.name, long_name=self.long_name)
 
-        if len(self._queries) == 0:
-            self._queries = [{'query':{}}]
-
-        query_product = itertools.product(*[
-            [{d:s} for s in self._aggregator._dataset[d]]
-            for d in self._along_dimensions
-        ])
-
-        # TODO another cartesian Product should live here
-
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        pass
+    # TODO add get min and max of whole dataset here
+    # this would make min_max easier

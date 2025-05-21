@@ -1,20 +1,22 @@
 ---
 output: ./asdf
 thread_count: 1
+
 aggregator:
   icon_eu:
     module: metchart.aggregator.dwd_icon.IconAggregator
     model: icon-eu
     pressure_levels: [1000, 950, 900, 800, 700, 600, 500, 400, 300, 200]
     steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
+
 plotter:
-  horizontal:
-    module: metchart.plotter.horizontal.HorizontalPlotter
-    aggregator: icon_eu
-    config:
-      layers:
-        - layertype: raster
-          field: u_surface
+  #horizontal:
+  #  module: metchart.plotter.horizontal.HorizontalPlotter
+  #  aggregator: icon_eu
+  #  config:
+  #    layers:
+  #      - layertype: raster
+  #        field: u_surface
   testplotter:
     module: metchart.plotter.DebugPlotter
     aggregator: icon_eu
@@ -30,9 +32,11 @@ plotter:
       - name: antersberg
         long_name: Flugplatz Antersberg
         query:
-          LATITUDE: 47.96
-          LONGITUDE: 11.99
+          latitude: 47.96
+          longitude: 11.99
+          method: nearest
       - name: munich
         query:
-          LATITUDE: 48.16
-          LONGITUDE: 11.57
+          latitude: 48.16
+          longitude: 11.57
+          method: nearest
