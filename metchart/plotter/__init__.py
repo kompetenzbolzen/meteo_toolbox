@@ -3,7 +3,7 @@ Plotter base class
 '''
 
 from collections.abc import Callable
-from ..aggregator import Variable
+from ..aggregator import Variable, DataView
 
 class PlotterException(Exception):
     pass
@@ -26,8 +26,8 @@ class Plotter:
     def report_needed_variables(self) -> list[Variable]:
         return self._report_needed_variables()
 
-    def plot(self):
-        return self._plot()
+    def plot(self, view: DataView):
+        return self._plot(view)
 
     def _init(self):
         pass
@@ -39,7 +39,7 @@ class Plotter:
     def _report_needed_variables(self) -> list[Variable]:
         raise PlotterNotImplementedException('_report_needed_variables()')
 
-    def _plot(self) -> None:
+    def _plot(self, view: DataView) -> None:
         raise PlotterNotImplementedException('_plot()')
 
 class DebugPlotter(Plotter):
@@ -51,6 +51,5 @@ class DebugPlotter(Plotter):
     def _report_needed_variables(self) -> list[Variable]:
         return [Variable.U_SURFACE, Variable.V_SURFACE]
 
-    def _plot(self):
-        print("I am plotting")
-        print(self._aggregator_callback()(Variable.U_SURFACE,[]))
+    def _plot(self, view):
+        print(view)
