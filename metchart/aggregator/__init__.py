@@ -31,6 +31,11 @@ class Variable(StrEnum):
     V_SURFACE = auto()
     GUST_SURFACE = auto()
     PRECIPITATION_ACCUMULATED = auto()
+    CLOUDCOVER_3D = auto()
+    CONVECTION_WET_BASE = auto()
+    CONVECTION_WET_TOP = auto()
+    CONVECTION_DRY_TOP = auto()
+    PRESSURE_SEA_LEVEL = auto()
 
 
 class Dimension(StrEnum):
@@ -120,6 +125,7 @@ class DataView():
             query = {}
             for p in query_parts:
                 query.update(p)
+            # NOTE we keep name and long_name along dimensions (for grouping outputs)
             yield DataView(self.get(), query=query,
                            name=self.name, long_name=self.long_name)
 

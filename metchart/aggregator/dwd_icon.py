@@ -23,20 +23,48 @@ BASE='https://opendata.dwd.de/weather/nwp'
 class IconAggregator(Aggregator):
     PROVIDES = [
         Variable.TEMPERATURE_3D,
+        Variable.HUMIDITY_3D,
+        Variable.TEMPERATURE_SURFACE,
+        Variable.HUMIDITY_SURFACE,
+
         Variable.U_3D,
         Variable.V_3D,
         Variable.U_SURFACE,
         Variable.V_SURFACE,
+        Variable.GUST_SURFACE,
+
+        Variable.CLOUDCOVER_3D,
+        Variable.PRECIPITATION_ACCUMULATED,
+
+        Variable.CONVECTION_WET_BASE,
+        Variable.CONVECTION_WET_TOP,
+        Variable.CONVECTION_DRY_TOP,
+
+        Variable.PRESSURE_SEA_LEVEL,
     ]
 
     _VAR_MAPPING = {
             Variable.TEMPERATURE_3D: {'path': 't', 'data':'t', 'plev': True},
+            Variable.HUMIDITY_3D: {'path': 'relhum', 'data':'r', 'plev': True},
+            Variable.TEMPERATURE_SURFACE: {'path': 't_2m', 'data':'t2m', 'plev': False},
+            Variable.HUMIDITY_SURFACE: {'path': 'relhum_2m', 'data':'r2', 'plev': False},
+
             Variable.U_3D: {'path': 'u', 'data':'u', 'plev': True},
             Variable.V_3D: {'path': 'v', 'data':'v', 'plev': True},
             Variable.U_SURFACE:{'path': 'u_10m', 'data':'u10', 'plev': False},
             Variable.V_SURFACE:{'path': 'v_10m', 'data':'v10', 'plev': False},
             Variable.GUST_SURFACE:{'path': 'vmax_10m', 'data':'fg10', 'plev': False},
 
+            Variable.CLOUDCOVER_3D: {'path': 'clc', 'data':'ccl', 'plev': True},
+            Variable.PRECIPITATION_ACCUMULATED: {'path': 'tot_prec', 'data':'tp', 'plev': False},
+
+            Variable.CONVECTION_WET_BASE: {'path': 'hbas_con', 'data':'HBAS_CON', 'plev': False},
+            Variable.CONVECTION_WET_TOP:  {'path': 'htop_con', 'data':'HTOP_CON', 'plev': False},
+            Variable.CONVECTION_DRY_TOP:  {'path': 'htop_dc',  'data':'HTOP_DC',  'plev': False},
+
+            Variable.PRESSURE_SEA_LEVEL:  {'path': 'prmsl',  'data':'prmsl',  'plev': False},
+
+            Dimension.PRESSURE:{'data': 'isobaricInhPa'},
             Dimension.INIT_TIME:{'data': 'time'},
             Dimension.TIME:{'data': 'step'},
     }
@@ -50,7 +78,7 @@ class IconAggregator(Aggregator):
             # TODO pressure, time
             # These are non-indexed dimensions, so not queryable
             # see: https://github.com/pydata/xarray/issues/2028
-            # Dimension.PRESSURE: None,
+            Dimension.PRESSURE: 'isobaricInhPa',
     }
 
     _MODEL_SUFFIX = {
@@ -84,6 +112,11 @@ class IconAggregator(Aggregator):
         for _ in ThreadPool(cpu_count()).map(download_url, filelist):
             pass
 
+        load_defaults={
+                'drop_variables':['heightAboveGround'],
+                'decode_timedelta': False,
+        }
+
         # TODO bit ugly, eh?
         ds_vars = []
         for var in self._needed_variables:
@@ -91,12 +124,19 @@ class IconAggregator(Aggregator):
             for step in self._steps:
                 if self._VAR_MAPPING[var]['plev']:
                     ds_steps.append(xr.concat(
-                            [xr.open_dataset(os.path.join(self._download_dir,f)) for f in [self._construct_filename(step,var,l) for l in self._levels]],
-                            dim='icobaricInhPa'
-                            ))
+                            [
+                                xr.open_dataset(os.path.join(self._download_dir,f), **load_defaults)
+                                for f in [self._construct_filename(step,var,l) for l in self._levels]
+                            ],
+                            dim='isobaricInhPa'
+                        ))
                 else:
-                    ds_steps.append(xr.open_dataset(os.path.join(self._download_dir,self._construct_filename(step,var)))
-                                    ) # NOTE Maybe a bit hacky, but does the job
+                    ds_steps.append(
+                            xr.open_dataset(
+                                os.path.join(self._download_dir,self._construct_filename(step,var)),
+                                **load_defaults
+                            )
+                        ) # NOTE Maybe a bit hacky, but does the job
             ds_vars.append(xr.concat(ds_steps, dim='step'))
         self._dataset = xr.merge(ds_vars)
 
