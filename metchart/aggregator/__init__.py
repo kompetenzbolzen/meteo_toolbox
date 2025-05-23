@@ -31,6 +31,7 @@ class Variable(StrEnum):
     V_SURFACE = auto()
     GUST_SURFACE = auto()
     PRECIPITATION_ACCUMULATED = auto()
+    SNOW_DEPTH = auto()
     CLOUDCOVER_3D = auto()
     CONVECTION_WET_BASE = auto()
     CONVECTION_WET_TOP = auto()

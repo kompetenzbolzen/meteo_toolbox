@@ -35,6 +35,7 @@ class IconAggregator(Aggregator):
 
         Variable.CLOUDCOVER_3D,
         Variable.PRECIPITATION_ACCUMULATED,
+        Variable.SNOW_DEPTH,
 
         Variable.CONVECTION_WET_BASE,
         Variable.CONVECTION_WET_TOP,
@@ -57,12 +58,13 @@ class IconAggregator(Aggregator):
 
             Variable.CLOUDCOVER_3D: {'path': 'clc', 'data':'ccl', 'plev': True},
             Variable.PRECIPITATION_ACCUMULATED: {'path': 'tot_prec', 'data':'tp', 'plev': False},
+            Variable.SNOW_DEPTH: {'path': 'h_snow', 'data':'sde', 'plev': False},
 
             Variable.CONVECTION_WET_BASE: {'path': 'hbas_con', 'data':'HBAS_CON', 'plev': False},
             Variable.CONVECTION_WET_TOP:  {'path': 'htop_con', 'data':'HTOP_CON', 'plev': False},
             Variable.CONVECTION_DRY_TOP:  {'path': 'htop_dc',  'data':'HTOP_DC',  'plev': False},
 
-            Variable.PRESSURE_SEA_LEVEL:  {'path': 'prmsl',  'data':'prmsl',  'plev': False},
+            Variable.PRESSURE_SEA_LEVEL:  {'path': 'pmsl',  'data':'prmsl',  'plev': False},
 
             Dimension.PRESSURE:{'data': 'isobaricInhPa'},
             Dimension.INIT_TIME:{'data': 'time'},
