@@ -55,8 +55,8 @@ class Manager:
                 print("Query get: ", query_view.get())
                 for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):
                     print("Along get: ", along_view.get())
-                #plt.plot(view)
-                # TODO we need to handle the index here
+                    plt.plot(along_view)
+                    # TODO we need to handle the index here
 
     def aggregate_data(self):
         needed = {}
