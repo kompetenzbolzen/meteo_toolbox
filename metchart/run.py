@@ -12,11 +12,12 @@ def main():
     customization.register_units()
     customization.register_colormaps()
 
-    FILE = 'examples/config.yaml'
+    FILE = 'examples/refactor.yaml'
     if len(sys.argv) > 1:
         FILE = sys.argv[1]
 
     cfg = manager.Manager(FILE)
+    cfg.aggregate_data()
     cfg.run_plotters()
 
 

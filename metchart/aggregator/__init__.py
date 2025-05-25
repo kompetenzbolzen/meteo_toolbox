@@ -86,6 +86,7 @@ class Aggregator():
     def _aggregate(self) -> None:
         raise AggregatorNotImplementedException('_aggregate() not implemented')
 
+    # NOTE Deprecated
     def _query_data(self, var: Variable, query: list[tuple[Variable,object]]) -> xr.DataArray:
         raise AggregatorNotImplementedException('_query_data() not implemented')
 

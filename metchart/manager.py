@@ -42,19 +42,13 @@ class Manager:
 
     def run_plotters(self):
         for key in self.plotters:
-            print("PLOTTER", key)
             cfg = self.plotters[key]['config']
             plt = self.plotters[key]['object']
 
             full_view = DataView(self.aggregators[cfg['aggregator']]._dataset)
 
-            print("Config", json.dumps(cfg, indent=4))
-
             for query_view in full_view.for_queries(cfg['for_queries'] if 'for_queries' in cfg else []):
-
-                print("Query get: ", query_view.get())
                 for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):
-                    print("Along get: ", along_view.get())
                     plt.plot(along_view)
                     # TODO we need to handle the index here
 

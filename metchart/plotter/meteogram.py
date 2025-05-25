@@ -16,7 +16,6 @@ from .. import misc
 HEIGHT = 13
 
 class Meteogram(Plotter):
-
     def _load_config(self, **kwargs):
         print(kwargs)
         self._cfg = kwargs
