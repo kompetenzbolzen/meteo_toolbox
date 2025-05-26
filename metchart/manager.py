@@ -41,11 +41,15 @@ class Manager:
         self._parse()
 
     def run_plotters(self):
+        index = {}
+
         for key in self.plotters:
             cfg = self.plotters[key]['config']
             plt = self.plotters[key]['object']
 
-            full_view = DataView(self.aggregators[cfg['aggregator']]._dataset)
+            index[key] = {}
+
+            full_view = DataView(self.aggregators[cfg['aggregator']]._dataset, name=key)
 
             for query_view in full_view.for_queries(cfg['for_queries'] if 'for_queries' in cfg else []):
                 for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):

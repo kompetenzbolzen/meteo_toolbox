@@ -111,14 +111,12 @@ class DataView():
                  query: dict | None = None,
                  name: str = '',
                  long_name: str = '',
-                 _name_stack: list[str] = [],
-                 _long_name_stack: list[str] = []):
+                 parent: DataView | None = None):
         self._dataset = dataset
         self.query = query
         self.name = name
         self.long_name = long_name
-        self._name_stack = _name_stack
-        self._long_name_stack = _long_name_stack
+        self.parent = parent
 
     def get(self) -> xr.Dataset:
         if self.query is not None:
@@ -130,16 +128,19 @@ class DataView():
             yield self
 
         for query in queries:
-            yield DataView(self.get(),
-                           _name_stack=self._name_stack + [self.name],
-                           _long_name_stack=self._long_name_stack + [self.long_name],
-                           **query)
+            yield DataView(self.get(), parent=self, **query)
+
+    def _get_attr_from_parents(self, attr) -> Iterable:
+        ptr = self
+        while ptr is not None:
+            yield ptr.__getattribute__(attr)
+            ptr = ptr.parent
 
     def construct_full_name(self):
-            return '_'.join(self._name_stack + [self.name])
+        return '_'.join(list(self._get_attr_from_parents('name'))[::-1])
 
     def construct_full_long_name(self):
-            return '_'.join(self._long_name_stack + [self.long_name])
+        return ' '.join(list(self._get_attr_from_parents('long_name'))[::-1])
 
     def along_dimensions(self, dimensions: list[Dimension]) -> Iterable[DataView]:
         if len(dimensions) < 1:
@@ -157,13 +158,9 @@ class DataView():
             for p in query_parts:
                 query.update(p)
 
+            # TODO do we want to set the name here?
             name      = '_'.join([f'{k}-{_sanitize_value_string(v)}' for k,v in query.items()])
             long_name = ' '.join([f'{k}={_sanitize_value_string(v)}' for k,v in query.items()])
 
-            yield DataView(self.get(), query=query,
-                           name=name, long_name=long_name,
-                           _name_stack=self._name_stack + [self.name],
-                           _long_name_stack=self._long_name_stack + [self.long_name] )
-
-    # TODO add get min and max of whole dataset here
-    # this would make min_max easier
+            yield DataView(self.get(), query=query, parent=self,
+                           name=name, long_name=long_name)
