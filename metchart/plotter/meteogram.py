@@ -33,7 +33,7 @@ class Meteogram(Plotter):
         ]
 
     def _plot(self, view):
-        _plot(view.get(), self._cache_dir, view.name)
+        _plot(view.get(), self._cache_dir, view.construct_full_name())
 
 def run(data, plots, output='.', name='meteogram'):
     misc.create_output_dir(output)
@@ -173,7 +173,7 @@ def _plot(data, output, name):
 
     ### Output
 
-    outname = f'{name}_{init_for_filename}.png'
+    outname = f'{name}.png'
     plt.savefig(os.path.join(output, outname))
     plt.close('all')
 

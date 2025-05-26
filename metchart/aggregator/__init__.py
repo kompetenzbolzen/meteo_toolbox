@@ -6,10 +6,22 @@ from __future__ import annotations
 from enum import StrEnum, auto
 from typing import Iterable
 import xarray as xr
+import datetime
 
 import itertools
+import numpy as np
+from .. import misc
 
 import os
+
+def _sanitize_value_string(v) -> str:
+    if type(v) is datetime.datetime:
+        return v.strftime('%Y-%m-%d-%H%MUTC')
+    elif type(v) is np.datetime64:
+        return misc.np_time_convert(v).strftime('%Y-%m-%d-%H%MUTC')
+    elif type(v) is float:
+        return '{:.2f}'.format(v)
+    return str(v)
 
 class AggregatorException(Exception):
     pass
@@ -97,12 +109,16 @@ class Aggregator():
 class DataView():
     def __init__(self, dataset: xr.Dataset,
                  query: dict | None = None,
-                 name: str | None = None,
-                 long_name: str | None = None):
+                 name: str = '',
+                 long_name: str = '',
+                 _name_stack: list[str] = [],
+                 _long_name_stack: list[str] = []):
         self._dataset = dataset
         self.query = query
         self.name = name
         self.long_name = long_name
+        self._name_stack = _name_stack
+        self._long_name_stack = _long_name_stack
 
     def get(self) -> xr.Dataset:
         if self.query is not None:
@@ -114,7 +130,16 @@ class DataView():
             yield self
 
         for query in queries:
-            yield DataView(self.get(), **query)
+            yield DataView(self.get(),
+                           _name_stack=self._name_stack + [self.name],
+                           _long_name_stack=self._long_name_stack + [self.long_name],
+                           **query)
+
+    def construct_full_name(self):
+            return '_'.join(self._name_stack + [self.name])
+
+    def construct_full_long_name(self):
+            return '_'.join(self._long_name_stack + [self.long_name])
 
     def along_dimensions(self, dimensions: list[Dimension]) -> Iterable[DataView]:
         if len(dimensions) < 1:
@@ -124,12 +149,21 @@ class DataView():
                                         [{d:s} for s in self._dataset[d].values]
                                         for d in dimensions
                                      ]):
+            if len(query_parts) < 1:
+                # NOTE this is needed, because product() does not return an empty iterable if input is empty...
+                break
+
             query = {}
             for p in query_parts:
                 query.update(p)
-            # NOTE we keep name and long_name along dimensions (for grouping outputs)
+
+            name      = '_'.join([f'{k}-{_sanitize_value_string(v)}' for k,v in query.items()])
+            long_name = ' '.join([f'{k}={_sanitize_value_string(v)}' for k,v in query.items()])
+
             yield DataView(self.get(), query=query,
-                           name=self.name, long_name=self.long_name)
+                           name=name, long_name=long_name,
+                           _name_stack=self._name_stack + [self.name],
+                           _long_name_stack=self._long_name_stack + [self.long_name] )
 
     # TODO add get min and max of whole dataset here
     # this would make min_max easier

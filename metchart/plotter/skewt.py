@@ -31,7 +31,7 @@ class Skewt(Plotter):
         ]
 
     def _plot(self, view):
-        _plot(view.get(), self._cache_dir, view.name)
+        _plot(view.get(), self._cache_dir, view.construct_full_name())
 
 def _plot(data, output, name, analysis=None):
     p = data[Dimension.PRESSURE].values * units.hPa
@@ -64,7 +64,7 @@ def _plot(data, output, name, analysis=None):
 
     init_for_filename = init.strftime('%Y-%m-%d-%HUTC')
 
-    outname = f'skewt_{name}_{init_for_filename}+{hours_since_init_str}.png'
+    outname = f'{name}.png'
     skt.plot(filename=os.path.join(output, outname))
 
     plt.close('all')

@@ -41,9 +41,7 @@ class HorizontalPlotter (Plotter):
         return ret
 
     def _plot(self, view: DataView):
-        #ds = self._aggregator_callback()._dataset
-        print("I am plotting")
-        _plot(view.get(), self._cache_dir, view.name, self._layer_configs)
+        _plot(view.get(), self._cache_dir, view.construct_full_name(), self._layer_configs)
 
 def _plot(data, output, name, layers, area = None):
     index = []
@@ -79,11 +77,9 @@ def _plot(data, output, name, layers, area = None):
     pc.panels = [panel]
     pc.draw()
     #pc.show()
-    outname = f'{name}_{init_for_filename}+{hours_since_init_str}.png'
+    outname = f'{name}.png'
     pc.save(os.path.join(output, outname))
     plt.close('all')
-
-    print("save to", outname)
 
     index.append(
         {
