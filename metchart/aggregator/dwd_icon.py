@@ -227,16 +227,3 @@ def clean_output_dir(directory, target):
 
     for f in to_delete:
         os.unlink(os.path.join(directory, f))
-
-def test():
-    a = IconAggregator(cache_dir='./asdf')
-    a.load_config(
-            model='icon-eu', name='test', pressure_levels = [1000,850,500],
-            steps = [0,3,6,9,12,15,18,21,24])
-    a.add_needed(Variable.U_3D)
-    a.add_needed(Variable.V_3D)
-    a.add_needed(Variable.U_SURFACE)
-    a.add_needed(Variable.V_SURFACE)
-
-    a.aggregate()
-    print(a._dataset)

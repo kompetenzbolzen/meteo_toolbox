@@ -32,20 +32,8 @@ class Meteogram(Plotter):
             Variable.CONVECTION_WET_TOP, Variable.CONVECTION_WET_BASE,
         ]
 
-    def _plot(self, view):
-        _plot(view.get(), self._cache_dir, view.construct_full_name())
-
-def run(data, plots, output='.', name='meteogram'):
-    misc.create_output_dir(output)
-    index = []
-
-    for plot in plots:
-        index.append(_plot(data, output, **plot))
-
-    with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
-        f.write(json.dumps(index, indent=4))
-
-    return [{ 'name': name, 'indexfile': f'{name}.index.json', 'list_title': 'Location' }]
+    def _plot(self, view, filename_prefix):
+        return _plot(view.get(), self._output_dir, filename_prefix)
 
 def _get_next_subplot(size, counter=0):
     ret = (counter + 1, counter + size)
@@ -177,12 +165,4 @@ def _plot(data, output, name):
     plt.savefig(os.path.join(output, outname))
     plt.close('all')
 
-    return (
-        {
-            'file': outname,
-            'init': init_str,
-            'valid': init_str,
-            'valid_offset': '00',
-            'display_name': name,
-            'id': name
-        })
+    return outname

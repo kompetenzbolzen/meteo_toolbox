@@ -130,10 +130,16 @@ class DataView():
         for query in queries:
             yield DataView(self.get(), parent=self, **query)
 
-    def _get_attr_from_parents(self, attr) -> Iterable:
+    def _get_attr_from_parents(self, attr: str) -> Iterable:
         ptr = self
         while ptr is not None:
             yield ptr.__getattribute__(attr)
+            ptr = ptr.parent
+
+    def _call_func_from_parents(self, func: str, *args, **kwargs) -> Iterable:
+        ptr = self
+        while ptr is not None:
+            yield ptr.__getattribute__(func)(*args, **kwargs)
             ptr = ptr.parent
 
     def construct_full_name(self):
@@ -141,6 +147,43 @@ class DataView():
 
     def construct_full_long_name(self):
         return ' '.join(list(self._get_attr_from_parents('long_name'))[::-1])
+
+    def generate_unique_name(self):
+        return '_'.join(list(self._call_func_from_parents('generate_name'))[::-1])
+
+    def name_query(self) -> str:
+        if self.query is None:
+            return ''
+        return '_'.join([f'{k}-{_sanitize_value_string(v)}' for k,v in self.query.items()])
+
+    def generate_name(self) -> str:
+        if len(self.name) < 1:
+            return self.name_query()
+        return self.name
+
+    def describe_query(self) -> str:
+        if self.query is None:
+            return ''
+        return ' '.join([f'{k}={_sanitize_value_string(v)}' for k,v in self.query.items()])
+
+    def describe(self) -> str:
+        if len(self.long_name) < 1:
+            return self.describe_query()
+        return self.long_name
+
+    def _get_chain_element(self) -> dict:
+        ret = {}
+        if len(self.name):
+            ret['name'] = self.name
+        if len(self.long_name):
+            ret['name'] = self.long_name
+        if self.query is not None:
+            ret['query'] = {k:_sanitize_value_string(v) for k,v in self.query.items()}
+
+        return ret
+
+    def generate_chain(self) -> list[dict]:
+        return list(self._call_func_from_parents('_get_chain_element'))[::-1]
 
     def along_dimensions(self, dimensions: list[Dimension]) -> Iterable[DataView]:
         if len(dimensions) < 1:
@@ -159,8 +202,7 @@ class DataView():
                 query.update(p)
 
             # TODO do we want to set the name here?
-            name      = '_'.join([f'{k}-{_sanitize_value_string(v)}' for k,v in query.items()])
-            long_name = ' '.join([f'{k}={_sanitize_value_string(v)}' for k,v in query.items()])
+            # name      = '_'.join([f'{k}-{_sanitize_value_string(v)}' for k,v in query.items()])
+            # long_name = ' '.join([f'{k}={_sanitize_value_string(v)}' for k,v in query.items()])
 
-            yield DataView(self.get(), query=query, parent=self,
-                           name=name, long_name=long_name)
+            yield DataView(self.get(), query=query, parent=self)

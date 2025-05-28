@@ -40,8 +40,8 @@ class HorizontalPlotter (Plotter):
             ret.append(Variable(field))
         return ret
 
-    def _plot(self, view: DataView):
-        _plot(view.get(), self._cache_dir, view.construct_full_name(), self._layer_configs)
+    def _plot(self, view: DataView, filename_prefix: str):
+        return _plot(view.get(), self._output_dir, filename_prefix, self._layer_configs)
 
 def _plot(data, output, name, layers, area = None):
     index = []
@@ -81,21 +81,7 @@ def _plot(data, output, name, layers, area = None):
     pc.save(os.path.join(output, outname))
     plt.close('all')
 
-    index.append(
-        {
-            'file': outname,
-            'init': init_str,
-            'valid': valid_str,
-            'valid_offset': hours_since_init_str,
-            'display_name': hours_since_init_str,
-            'id': name
-        }
-    )
-
-    #with open(os.path.join(output, f'{name}.index.json'), 'w') as f:
-    #    f.write(json.dumps(index, indent=4))
-
-    #return { 'name': name, 'indexfile': f'{name}.index.json', 'list_title': 'INIT+' }
+    return outname
 
 def _layer(data, layertype, **kwargs):
     layertypes={

@@ -30,8 +30,8 @@ class Skewt(Plotter):
             Variable.HUMIDITY_3D,
         ]
 
-    def _plot(self, view):
-        _plot(view.get(), self._cache_dir, view.construct_full_name())
+    def _plot(self, view, filename_prefix):
+        return _plot(view.get(), self._cache_dir, filename_prefix)
 
 def _plot(data, output, name, analysis=None):
     p = data[Dimension.PRESSURE].values * units.hPa
@@ -68,3 +68,5 @@ def _plot(data, output, name, analysis=None):
     skt.plot(filename=os.path.join(output, outname))
 
     plt.close('all')
+
+    return outname

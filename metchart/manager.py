@@ -5,7 +5,6 @@ import json
 import os
 
 import importlib
-
 import functools
 
 from multiprocessing import cpu_count
@@ -33,12 +32,17 @@ class Manager:
         self.plotters={}
 
         self._filename = filename
-        self._output_dir = './web/data'
+        self._output_dir = './metchar_output'
         self._thread_count = max(cpu_count()-1, 1)
         self._cache_dir = './metchart_cache'
 
         self._load()
         self._parse()
+
+        if not os.path.exists(self._output_dir):
+            os.makedirs(self._output_dir)
+        if not os.path.exists(self._cache_dir):
+            os.makedirs(self._cache_dir)
 
     def run_plotters(self):
         index = {}
@@ -53,8 +57,12 @@ class Manager:
 
             for query_view in full_view.for_queries(cfg['for_queries'] if 'for_queries' in cfg else []):
                 for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):
-                    plt.plot(along_view)
-                    # TODO we need to handle the index here
+                    real_filename = plt.plot(along_view, along_view.generate_unique_name() )
+
+                    index[key][real_filename] = along_view.generate_chain()
+
+        with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
+            f.write( json.dumps(index, indent=2) )
 
     def aggregate_data(self):
         needed = {}
@@ -129,7 +137,7 @@ class Manager:
     def _prepare_plotter(self, name, module, cfg):
         self.plotters[name] = {
                 "object" : module(
-                    self._cache_dir, name,
+                    self._cache_dir, self._output_dir, name,
                     functools.partial(self._aggregator_callback, name) ),
                 "config" : cfg
             }
