@@ -1,136 +1,55 @@
 ---
-index: web/data/index.json
-aggregator:
-  icon_eu_other:
-    module: aggregator.dwd_icon
-    output: dwd_icon_cache
-    model: icon-eu
-    model_long: icon-eu_europe
-    parameter_caps_in_filename: true
-    pressure_level_parameters:
-      - t
-      - relhum
-      - u
-      - v
-      - fi
-      - clc
-    single_level_parameters:
-      - pmsl
-      - t_2m
-      - relhum_2m
-      - hbas_con
-      - htop_con
-      - htop_dc
-      - tot_prec
-      - h_snow
-    pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
-    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72]
-    description: FORECAST DWD ICON-EU
-  icon_eu_10m_params:
-    module: aggregator.dwd_icon
-    output: dwd_icon_cache
-    model: icon-eu
-    model_long: icon-eu_europe
-    parameter_caps_in_filename: true
-    pressure_level_parameters: []
-    single_level_parameters:
-      - u_10m
-      - v_10m
-      - vmax_10m
-    pressure_levels: [1000, 950, 925, 900, 875, 850, 825, 800, 775, 700, 600, 500, 400, 300, 250, 200, 150, 100]
-    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72]
-    description: FORECAST DWD ICON-EU
-modifier:
-  icon_eu:
-    module: modifier.merge
-    aggregator:
-      - icon_eu_other
-      - icon_eu_10m_params
-plotter:
-  - module: plotter.meteogram
-    aggregator: icon_eu
-    output: web/data
-    plots:
-      - name: meteogram_antersberg
-        lat: 47.96
-        lon: 11.99
-      - name: meteogram_munich
-        lat: 48.16
-        lon: 11.57
+output: ./output
+thread_count: 1
 
-  - module: 'plotter.vertical_from_grib'
+aggregator:
+  icon_eu:
+    module: metchart.aggregator.dwd_icon.IconAggregator
+    model: icon-eu
+    pressure_levels: [1000, 950, 900, 850, 800, 700, 600, 500, 400, 300, 200]
+    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
+
+plotter:
+  horizontal:
+    module: metchart.plotter.horizontal.HorizontalPlotter
     aggregator: icon_eu
-    output: web/data
-    plots:
-      - lat: 47.96
-        lon: 11.99
-        name: skewt_antersberg
-        analysis: lcl
-      - lat: 11.57
-        lon: 48.16
-        name: skewt_munich
-        analysis: lcl
-  - module: 'plotter.horizontal'
+    config:
+      layers:
+        - layertype: raster
+          field: u_surface
+    along_dimensions:
+      - time
+  meteogram:
+    module: metchart.plotter.meteogram.Meteogram
     aggregator: icon_eu
-    output: web/data
-    plots:
-      - name: dry_con_top
-        area: null
-        layers:
-          - layertype: raster
-            field: HTOP_DC
-      - name: t_fi_850
-        area: null
-        layers:
-          - layertype: raster
-            field: t
-            level: 850
-            plot_units: degC
-            colormap: jet
-          - layertype: contour
-            field: z
-            level: 850
-            plot_units: '_gpdm'
-            contours: 5
-            clabels: true
-      - name: t_fi_500
-        area: null
-        layers:
-          - layertype: raster
-            field: t
-            level: 500
-            plot_units: degC
-            colormap: jet
-          - layertype: contour
-            field: z
-            level: 500
-            plot_units: '_gpdm'
-            contours: 5
-            clabels: true
-      - name: t_fi_200
-        area: null
-        layers:
-          - layertype: raster
-            field: t
-            level: 200
-            plot_units: degC
-            colormap: jet
-          - layertype: contour
-            field: z
-            level: 200
-            plot_units: '_gpdm'
-            contours: 5
-            clabels: true
-      - name: pmsl_t850
-        area: null
-        layers:
-          - layertype: raster
-            field: t
-            level: 850
-            plot_units: degC
-            colormap: jet
-          - layertype: contour
-            field: prmsl
-            plot_units: 'hPa'
-            contours: 10
-            clabels: true
+    config: {}
+    for_queries:
+      - name: antersberg
+        long_name: Flugplatz Antersberg
+        query:
+          latitude: 47.96
+          longitude: 11.99
+          method: nearest
+      - name: munich
+        query:
+          latitude: 48.16
+          longitude: 11.57
+          method: nearest
+  skewt:
+    module: metchart.plotter.skewt.Skewt
+    aggregator: icon_eu
+    config: {}
+    along_dimensions:
+      - time
+    for_queries:
+      - name: antersberg
+        long_name: Flugplatz Antersberg
+        query:
+          latitude: 47.96
+          longitude: 11.99
+          method: nearest
+      - name: munich
+        query:
+          latitude: 48.16
+          longitude: 11.57
+          method: nearest
