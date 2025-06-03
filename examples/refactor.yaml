@@ -7,8 +7,7 @@ aggregator:
     module: metchart.aggregator.dwd_icon.IconAggregator
     model: icon-eu
     pressure_levels: [1000, 950, 900, 850, 800, 700, 600, 500, 400, 300, 200]
-    steps: [0, 3]
-    #steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
+    steps: [0, 3, 6, 9, 12, 15, 18, 21, 24]
 
 plotter:
   horizontal:
@@ -54,26 +53,3 @@ plotter:
           latitude: 48.16
           longitude: 11.57
           method: nearest
-#  testplotter:
-#    module: metchart.plotter.DebugPlotter
-#    aggregator: icon_eu
-#    config:
-#      this: is
-#      a:
-#        - list
-#        - of
-#      configuration: variables
-#    along_dimensions:
-#      - time
-#    for_queries:
-#      - name: antersberg
-#        long_name: Flugplatz Antersberg
-#        query:
-#          latitude: 47.96
-#          longitude: 11.99
-#          method: nearest
-#      - name: munich
-#        query:
-#          latitude: 48.16
-#          longitude: 11.57
-#          method: nearest
