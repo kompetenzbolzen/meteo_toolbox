@@ -5,8 +5,20 @@ import json
 import os
 
 import importlib
+import functools
 
 from multiprocessing import cpu_count
+
+from metchart.aggregator import DataView
+
+class ManagerException(Exception):
+    pass
+
+class ManagerAggregatorNotFoundException(Exception):
+    pass
+
+class ManagerPlotterNotFoundException(Exception):
+    pass
 
 
 def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
@@ -17,21 +29,74 @@ def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
 class Manager:
     def __init__(self, filename: str = 'metchart.yaml'):
         self.aggregators={}
-        self._plotters=[]
+        self.plotters={}
 
         self._filename = filename
-        self._output_dir = './web/data'
+        self._output_dir = './metchar_output'
         self._thread_count = max(cpu_count()-1, 1)
+        self._cache_dir = './metchart_cache'
 
         self._load()
         self._parse()
 
+        if not os.path.exists(self._output_dir):
+            os.makedirs(self._output_dir)
+        if not os.path.exists(self._cache_dir):
+            os.makedirs(self._cache_dir)
+
     def run_plotters(self):
-        index = map(lambda p: p['module'].run(**p['cfg']), self._plotters)
+        index = {}
+
+        for key in self.plotters:
+            cfg = self.plotters[key]['config']
+            plt = self.plotters[key]['object']
+
+            index[key] = {}
+
+            full_view = DataView(self.aggregators[cfg['aggregator']]._dataset, name=key)
+
+            for query_view in full_view.for_queries(cfg['for_queries'] if 'for_queries' in cfg else []):
+                for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):
+                    real_filename = plt.plot(along_view, along_view.generate_unique_name() )
+
+                    index[key][real_filename] = along_view.generate_chain()
 
         with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
-            # NOTE index needs to be flattened.
-            f.write(json.dumps([x for xs in index for x in xs], indent=4))
+            f.write( json.dumps(index, indent=2) )
+
+    def aggregate_data(self):
+        needed = {}
+
+        for key in self.plotters:
+            plt = self.plotters[key]['object']
+            cfg = self.plotters[key]['config']
+
+            if 'aggregator' not in cfg:
+                continue
+            agg = cfg['aggregator']
+            if agg not in self.aggregators:
+                raise ManagerAggregatorNotFoundException(agg)
+
+            if agg not in needed:
+                needed[agg] = []
+
+            needed[agg].extend(plt.report_needed_variables())
+
+        for key in self.aggregators:
+            agg = self.aggregators[key]
+            for n in needed[key]:
+                agg.add_needed(n)
+            agg.aggregate()
+
+    def _aggregator_callback(self, caller_name: str):
+        if caller_name not in self.plotters:
+            raise ManagerPlotterNotFoundException(caller_name)
+
+        if 'aggregator' not in self.plotters[caller_name]['config']:
+            raise ManagerAggregatorNotFoundException("No aggregator was defined in the config")
+        agg = self.plotters[caller_name]['config']['aggregator']
+
+        return self.aggregators[agg].query_data
 
     def _load(self):
         with open(self._filename, 'r') as f:
@@ -40,56 +105,47 @@ class Manager:
     def _parse(self):
         run_if_present('output', self._raw_config, self._parse_output)
         run_if_present('thread_count', self._raw_config, self._parse_thread_count)
+
         run_if_present('aggregator', self._raw_config, self._parse_module, self._load_aggregator)
-        run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
+        # TODO reactivate
+        #run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
 
         run_if_present('plotter', self._raw_config, self._parse_module, self._prepare_plotter)
 
-    def _parse_module(self, data, then: Callable):
-        # TODO abstraction prbly off. anonymous reeks
-        anonymous = False
-        if type(data) is list:
-            anonymous = True
-
+    def _parse_module(self, data: dict, then: Callable):
         for key in data:
-            cfg = data[key] if not anonymous else key
+            cfg = data[key]
 
             if 'module' not in cfg:
                 print(f'ERROR: {key} is missing the "module" keyword.')
                 continue
 
-            classname = cfg['module']
+            modname, classname = cfg['module'].rsplit('.',1)
+            module = importlib.import_module(modname)
+            class_obj = getattr(module,classname)
+
+            then(key, class_obj, cfg)
+
+    def _load_aggregator(self, name: str, module, cfg: dict):
+        # TODO feels a bit hacky
+        if 'module' in cfg:
             del cfg['module']
-            module = importlib.import_module(classname)
 
-            then(key if not anonymous else None, module, cfg)
+        self.aggregators[name] = module(self._cache_dir, name)
+        self.aggregators[name].load_config(**cfg)
 
-    def _load_aggregator(self, name: str, module, cfg):
-        self.aggregators[name] = module.load_data(name=name, **cfg)
+    def _prepare_plotter(self, name, module, cfg):
+        self.plotters[name] = {
+                "object" : module(
+                    self._cache_dir, self._output_dir, name,
+                    functools.partial(self._aggregator_callback, name) ),
+                "config" : cfg
+            }
 
-    def _load_modifier(self, name: str, module, cfg):
-        if 'aggregator' in cfg:
-            if type(cfg['aggregator']) == list:
-                cfg['data'] = []
-                for ag in cfg['aggregator']:
-                    cfg['data'].append(self.aggregators[ag])
+        if 'config' not in cfg:
+            cfg['config'] = {}
 
-                del cfg['aggregator']
-            else:
-                cfg['data'] = self.aggregators[cfg['aggregator']]
-                del cfg['aggregator']
-
-        self.aggregators[name] = module.run(**cfg)
-
-    def _prepare_plotter(self, _name, module, cfg):
-        if 'aggregator' in cfg:
-            cfg['data'] = self.aggregators[cfg['aggregator']]
-            del cfg['aggregator']
-
-        self._plotters.append({
-                'module': module,
-                'cfg': cfg
-        })
+        self.plotters[name]['object'].load_config(**cfg['config'])
 
     def _parse_output(self, data: str):
         self._output_dir = data
