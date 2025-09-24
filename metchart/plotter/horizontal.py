@@ -36,8 +36,11 @@ class HorizontalPlotter (Plotter):
     def _report_needed_variables(self) -> list[Variable]:
         ret = []
         for layer in self._layer_configs:
-            field = layer['field'].lower()
-            ret.append(Variable(field))
+            if type(layer['field']) is list:
+                for a in layer['field']:
+                    ret.append(Variable(a))
+            else:
+                ret.append(Variable(layer['field'].lower()))
         return ret
 
     def _plot(self, view: DataView, filename_prefix: str):
