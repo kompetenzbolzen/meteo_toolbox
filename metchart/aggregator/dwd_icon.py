@@ -54,7 +54,7 @@ class IconAggregator(Aggregator):
             Variable.V_3D: {'path': 'v', 'data':'v', 'plev': True},
             Variable.U_SURFACE:{'path': 'u_10m', 'data':'u10', 'plev': False},
             Variable.V_SURFACE:{'path': 'v_10m', 'data':'v10', 'plev': False},
-            Variable.GUST_SURFACE:{'path': 'vmax_10m', 'data':'fg10', 'plev': False},
+            Variable.GUST_SURFACE:{'path': 'vmax_10m', 'data':'max_i10fg', 'plev': False},
 
             Variable.CLOUDCOVER_3D: {'path': 'clc', 'data':'ccl', 'plev': True},
             Variable.PRECIPITATION_ACCUMULATED: {'path': 'tot_prec', 'data':'tp', 'plev': False},
