@@ -167,7 +167,7 @@ class IconAggregator(Aggregator):
         filelist = []
 
         for var, step in itertools.product(self._needed_variables, self._steps):
-            url_base = f'{BASE}/{self._model}/grib/{self._run}/{self._VAR_MAPPING[var]['path']}'
+            url_base = f"{BASE}/{self._model}/grib/{self._run}/{self._VAR_MAPPING[var]['path']}"
             if self._VAR_MAPPING[var]['plev']:
                 l =  [self._construct_filename(step, var, l) for l in self._levels]
                 filelist += [(f'{url_base}/{f}.bz2', os.path.join(self._download_dir,f)) for f in l]
