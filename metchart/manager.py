@@ -26,6 +26,54 @@ def run_if_present(key, dct: dict, func: Callable, *args, **kwargs):
         func(dct[key], *args, **kwargs)
 
 
+class Index:
+    '''
+    Very hacky class to simulate behaviour of old index
+    to finally deploy new format to prod
+    '''
+    def __init__(self, output_dir: str):
+        self._output_dir = output_dir
+
+        self._sub_indices = {}
+        self._sub_type    = {}
+
+
+    def add_object(self, filename: str, view_chain):
+        sub_name = '_'.join([a['name'] for a in view_chain[:-1]])
+        last_chain = len(view_chain) -1
+
+        display_name = ""
+        list_title = ""
+        if 'name' in view_chain[last_chain]:
+            display_name = view_chain[last_chain]['name']
+            list_title = "Location"
+        elif 'query' in view_chain[last_chain] and 'time' in view_chain[last_chain]['query']:
+            display_name = view_chain[last_chain]['query']['time']
+            list_title = "Time"
+        else:
+            print('what?')
+            print(view_chain)
+
+        if sub_name not in self._sub_indices:
+            self._sub_indices[sub_name] = []
+            self._sub_type[sub_name] = list_title
+
+        self._sub_indices[sub_name].append({'file': filename, 'display_name': display_name})
+
+    def save(self):
+        index = [{ 'name': sub,
+                   'indexfile': f'{sub}.index.json',
+                   'list_title': self._sub_type[sub] }
+                for sub in self._sub_indices ]
+
+        with open(f'{self._output_dir}/index.json','w') as f:
+            f.write(json.dumps(index, indent=4))
+
+        for sub in self._sub_indices:
+            with open(f'{self._output_dir}/{sub}.index.json','w') as f:
+                f.write(json.dumps(self._sub_indices[sub], indent=4))
+
+
 class Manager:
     def __init__(self, filename: str = 'metchart.yaml'):
         self.aggregators={}
@@ -45,13 +93,11 @@ class Manager:
             os.makedirs(self._cache_dir)
 
     def run_plotters(self):
-        index = {}
+        index = Index(self._output_dir)
 
         for key in self.plotters:
             cfg = self.plotters[key]['config']
             plt = self.plotters[key]['object']
-
-            index[key] = {}
 
             full_view = DataView(self.aggregators[cfg['aggregator']]._dataset, name=key)
 
@@ -59,10 +105,10 @@ class Manager:
                 for along_view in query_view.along_dimensions(cfg['along_dimensions'] if 'along_dimensions' in cfg else []):
                     real_filename = plt.plot(along_view, along_view.generate_unique_name() )
 
-                    index[key][real_filename] = along_view.generate_chain()
+                    index.add_object(real_filename, along_view.generate_chain())
 
-        with open(os.path.join(self._output_dir, 'index.json'), 'w') as f:
-            f.write( json.dumps(index, indent=2) )
+        index.save()
+
 
     def aggregate_data(self):
         needed = {}
