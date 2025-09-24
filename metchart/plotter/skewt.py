@@ -31,7 +31,7 @@ class Skewt(Plotter):
         ]
 
     def _plot(self, view, filename_prefix):
-        return _plot(view.get(), self._cache_dir, filename_prefix)
+        return _plot(view.get(), self._output_dir, filename_prefix)
 
 def _plot(data, output, name, analysis=None):
     p = data[Dimension.PRESSURE].values * units.hPa
