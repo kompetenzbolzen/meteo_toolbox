@@ -26,6 +26,7 @@ class IconAggregator(Aggregator):
         Variable.HUMIDITY_3D,
         Variable.TEMPERATURE_SURFACE,
         Variable.HUMIDITY_SURFACE,
+        Variable.GEOPOTENTIAL,
 
         Variable.U_3D,
         Variable.V_3D,
@@ -41,6 +42,9 @@ class IconAggregator(Aggregator):
         Variable.CONVECTION_WET_TOP,
         Variable.CONVECTION_DRY_TOP,
 
+        Variable.CAPE,
+        Variable.CIN,
+
         Variable.PRESSURE_SEA_LEVEL,
     ]
 
@@ -49,6 +53,7 @@ class IconAggregator(Aggregator):
             Variable.HUMIDITY_3D: {'path': 'relhum', 'data':'r', 'plev': True},
             Variable.TEMPERATURE_SURFACE: {'path': 't_2m', 'data':'t2m', 'plev': False},
             Variable.HUMIDITY_SURFACE: {'path': 'relhum_2m', 'data':'r2', 'plev': False},
+            Variable.GEOPOTENTIAL: {'path': 'fi', 'data':'z', 'plev': True},
 
             Variable.U_3D: {'path': 'u', 'data':'u', 'plev': True},
             Variable.V_3D: {'path': 'v', 'data':'v', 'plev': True},
@@ -63,6 +68,9 @@ class IconAggregator(Aggregator):
             Variable.CONVECTION_WET_BASE: {'path': 'hbas_con', 'data':'HBAS_CON', 'plev': False},
             Variable.CONVECTION_WET_TOP:  {'path': 'htop_con', 'data':'HTOP_CON', 'plev': False},
             Variable.CONVECTION_DRY_TOP:  {'path': 'htop_dc',  'data':'HTOP_DC',  'plev': False},
+
+            Variable.CAPE: {'path': 'cape_ml', 'data':'CAPE_ML', 'plev': False},
+            Variable.CIN: {'path': 'cin_ml', 'data':'CIN_ML', 'plev': False},
 
             Variable.PRESSURE_SEA_LEVEL:  {'path': 'pmsl',  'data':'prmsl',  'plev': False},
 

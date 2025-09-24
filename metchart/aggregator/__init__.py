@@ -37,6 +37,7 @@ class Variable(StrEnum):
     TEMPERATURE_SURFACE = auto()
     HUMIDITY_3D = auto()
     HUMIDITY_SURFACE = auto()
+    GEOPOTENTIAL = auto()
     U_3D = auto()
     V_3D = auto()
     U_SURFACE = auto()
@@ -49,6 +50,8 @@ class Variable(StrEnum):
     CONVECTION_WET_TOP = auto()
     CONVECTION_DRY_TOP = auto()
     PRESSURE_SEA_LEVEL = auto()
+    CAPE = auto()
+    CIN = auto()
 
 
 class Dimension(StrEnum):
