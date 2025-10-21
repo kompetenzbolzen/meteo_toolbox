@@ -28,19 +28,21 @@ class WyomingSoundingAggregator(Aggregator):
         self._date = None
         self._stations = []
 
-    def _load_config(self, stations: list[int]) -> None:
+    def _load_config(self, station: int) -> None:
         self._hour, self._date = get_current_run()
-        self._stations = stations
+        #self._stations = stations
+        self._station = station
 
     def _aggregate(self) -> None:
-        dss = []
-        for station in self._stations:
+        #dss = []
+        #for station in self._stations:
+            station = self._station
             target = os.path.join(self._cache_dir, f'{station}_{self._date}_{self._hour}.csv')
 
             download_wyoming_csv(station, self._date, self._hour, target)
-            ds = load_wyoming_csv(target, self._hour, self._date, station)
-            dss.append(ds)
-        self._dataset = xr.concat(dss, dim=Dimension.STATION)
+            self._dataset = load_wyoming_csv(target, self._hour, self._date, station)
+            #dss.append(ds)
+        #self._dataset = xr.concat(dss, dim=Dimension.STATION)
 
 def get_current_run():
     date=(datetime.date.today() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
