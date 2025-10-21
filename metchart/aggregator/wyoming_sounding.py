@@ -15,7 +15,7 @@ from .. import misc
 
 from ..aggregator import Aggregator, Variable, Dimension
 
-class IconAggregator(Aggregator):
+class WyomingSoundingAggregator(Aggregator):
     PROVIDES = [
             Variable.TEMPERATURE_3D,
             Variable.HUMIDITY_3D,
@@ -38,7 +38,8 @@ class IconAggregator(Aggregator):
             target = os.path.join(self._cache_dir, f'{station}_{self._date}_{self._hour}.csv')
 
             download_wyoming_csv(station, self._date, self._hour, target)
-            dss.append(load_wyoming_csv(target, self._hour, self._date, station))
+            ds = load_wyoming_csv(target, self._hour, self._date, station)
+            dss.append(ds)
         self._dataset = xr.concat(dss, dim=Dimension.STATION)
 
 def get_current_run():
@@ -96,17 +97,17 @@ def load_wyoming_csv(filepath, hour, date, station):
         {
             #"td": ([Dimension.TIME, Dimension.PRESSURE], [Td.to(units.kelvin).magnitude]),
             Variable.TEMPERATURE_3D:
-                ([Dimension.TIME, Dimension.PRESSURE], [T.to(units.kelvin).magnitude]),
+                (Dimension.PRESSURE, T.to(units.kelvin).magnitude),
             Variable.HUMIDITY_3D:
-                ([Dimension.TIME, Dimension.PRESSURE], [r]),
+                (Dimension.PRESSURE, r),
             Variable.U_3D:
-                ([Dimension.TIME, Dimension.PRESSURE], [u.to('m/s').magnitude]),
+                (Dimension.PRESSURE, u.to('m/s').magnitude),
             Variable.V_3D:
-                ([Dimension.TIME, Dimension.PRESSURE], [v.to('m/s').magnitude]),
+                (Dimension.PRESSURE, v.to('m/s').magnitude),
         },
         coords={
             Dimension.PRESSURE:  p,
-            Dimension.TIME: Dimension.TIME,
+            Dimension.TIME: time,
             Dimension.INIT_TIME: time,
             Dimension.STATION: station
         },

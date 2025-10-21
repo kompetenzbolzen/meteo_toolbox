@@ -58,7 +58,7 @@ class Dimension(StrEnum):
     HEIGHT = auto()
     TIME = auto()
     INIT_TIME = auto()
-    STATION = autio()
+    STATION = auto()
 
 class Aggregator():
     PROVIDES=[]
