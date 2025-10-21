@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import datetime
 import requests
@@ -14,6 +13,37 @@ import metpy.calc as mpcalc
 
 from .. import misc
 
+from ..aggregator import Aggregator, Variable, Dimension
+
+class WyomingSoundingAggregator(Aggregator):
+    PROVIDES = [
+            Variable.TEMPERATURE_3D,
+            Variable.HUMIDITY_3D,
+            Variable.U_3D,
+            Variable.V_3D,
+    ]
+    def _init(self):
+        self._dataset = None
+        self._hour = None
+        self._date = None
+        self._stations = []
+
+    def _load_config(self, station: int) -> None:
+        self._hour, self._date = get_current_run()
+        #self._stations = stations
+        self._station = station
+
+    def _aggregate(self) -> None:
+        #dss = []
+        #for station in self._stations:
+            station = self._station
+            target = os.path.join(self._cache_dir, f'{station}_{self._date}_{self._hour}.csv')
+
+            download_wyoming_csv(station, self._date, self._hour, target)
+            self._dataset = load_wyoming_csv(target, self._hour, self._date, station)
+            #dss.append(ds)
+        #self._dataset = xr.concat(dss, dim=Dimension.STATION)
+
 def get_current_run():
     date=(datetime.date.today() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
     # TODO we also want noon
@@ -25,12 +55,13 @@ def download_wyoming_csv(station, date, hour, target):
     result = requests.get(url)
 
     if result.status_code >= 400:
+        # TODO Error handling
         raise Exception('Failed to Download sounding csv!')
 
     with open(target, 'w') as f:
         f.write(result.text)
 
-def load_wyoming_csv(filepath, hour, date):
+def load_wyoming_csv(filepath, hour, date, station):
     p = []
     T = []
     Td = []
@@ -64,45 +95,25 @@ def load_wyoming_csv(filepath, hour, date):
 
     time = np.datetime64(f'{date}T{hour}')
 
-    # recreate the structure a DWD GRIB produces
     return xr.Dataset(
         {
-            "t": (["step", "isobaricInhPa"], [T.to(units.kelvin).magnitude]),
-            "td": (["step", "isobaricInhPa"], [Td.to(units.kelvin).magnitude]),
-            "r": (["step", "isobaricInhPa"], [r]),
-            "u": (["step", "isobaricInhPa"], [u.to('m/s').magnitude]),
-            "v": (["step", "isobaricInhPa"], [v.to('m/s').magnitude]),
+            #"td": ([Dimension.TIME, Dimension.PRESSURE], [Td.to(units.kelvin).magnitude]),
+            Variable.TEMPERATURE_3D:
+                (Dimension.PRESSURE, T.to(units.kelvin).magnitude),
+            Variable.HUMIDITY_3D:
+                (Dimension.PRESSURE, r),
+            Variable.U_3D:
+                (Dimension.PRESSURE, u.to('m/s').magnitude),
+            Variable.V_3D:
+                (Dimension.PRESSURE, v.to('m/s').magnitude),
         },
         coords={
-            "isobaricInhPa":  p,
-            "step": [np.timedelta64(0, 'ns')],
-            "valid_time": (['step'], [time]),
-            "time": time,
+            Dimension.PRESSURE:  p,
+            Dimension.TIME: time,
+            Dimension.INIT_TIME: time,
+            Dimension.STATION: station
         },
         attrs={
             "source": "uwyo.edu",
         }
     )
-
-def load_data(name, output, station):
-    hour, date = get_current_run()
-    misc.create_output_dir(output)
-
-    target = os.path.join(output, f'{name}_{date}_{hour}.csv')
-
-    if not os.path.exists(target):
-        download_wyoming_csv(station, date, hour, target)
-    else:
-        print(f'{target} alreasy exists. Using the cached version.')
-
-    return load_wyoming_csv(target, hour, date)
-
-config_debug = {
-    'output': 'wyoming_test',
-    'station': '10548'
-}
-
-if __name__ == '__main__':
-    ds = load_data('test_wyoming_sounding', **config_debug)
-    print(ds)
-    print(ds.coords['step'])
