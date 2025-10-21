@@ -7,6 +7,9 @@ import os
 import importlib
 import functools
 
+import logging
+logger = logging.getLogger(__name__)
+
 from multiprocessing import cpu_count
 
 from metchart.aggregator import DataView
@@ -76,6 +79,9 @@ class Index:
 
 class Manager:
     def __init__(self, filename: str = 'metchart.yaml'):
+        logger.debug( "Manager starting up...")
+        logger.debug(f"-- Config: {filename}")
+
         self.aggregators={}
         self.plotters={}
 
@@ -88,8 +94,10 @@ class Manager:
         self._parse()
 
         if not os.path.exists(self._output_dir):
+            logger.debug("Creating OUTPUT dir {self._output_dir}")
             os.makedirs(self._output_dir)
         if not os.path.exists(self._cache_dir):
+            logger.debug("Creating CACHE  dir {self._cache_dir}")
             os.makedirs(self._cache_dir)
 
     def run_plotters(self):
