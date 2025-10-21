@@ -13,9 +13,12 @@ def main():
                         format='%(asctime)s | %(levelname)s | %(name)s - %(message)s',
                         datefmt='%c')
 
-    #logging.getLogger('paramiko').setLevel(logging.WARNING)
     logging.getLogger('urllib3').setLevel(logging.WARNING)
     logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.getLogger('findlibs').setLevel(logging.WARNING)
+    logging.getLogger('cfgrib').setLevel(logging.WARNING)
+    logging.getLogger('gribapi').setLevel(logging.WARNING)
+    logging.getLogger('metpy').setLevel(logging.WARNING)
 
     mpl.use('agg')
 

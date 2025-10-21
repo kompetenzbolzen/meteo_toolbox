@@ -79,8 +79,7 @@ class Index:
 
 class Manager:
     def __init__(self, filename: str = 'metchart.yaml'):
-        logger.debug( "Manager starting up...")
-        logger.debug(f"-- Config: {filename}")
+        logger.info( "Preparing Manager")
 
         self.aggregators={}
         self.plotters={}
@@ -101,6 +100,8 @@ class Manager:
             os.makedirs(self._cache_dir)
 
     def run_plotters(self):
+        logger.info( "Running plotters")
+
         index = Index(self._output_dir)
 
         for key in self.plotters:
@@ -119,6 +120,8 @@ class Manager:
 
 
     def aggregate_data(self):
+        logger.info( "Aggregating data")
+
         needed = {}
 
         for key in self.plotters:
@@ -153,6 +156,7 @@ class Manager:
         return self.aggregators[agg].query_data
 
     def _load(self):
+        logger.debug(f"Loading config {self._filename}")
         with open(self._filename, 'r') as f:
             self._raw_config = yaml.safe_load(f)
 
@@ -165,13 +169,14 @@ class Manager:
         #run_if_present('modifier', self._raw_config, self._parse_module, self._load_modifier)
 
         run_if_present('plotter', self._raw_config, self._parse_module, self._prepare_plotter)
+        logger.debug("Config loaded OK")
 
     def _parse_module(self, data: dict, then: Callable):
         for key in data:
             cfg = data[key]
 
             if 'module' not in cfg:
-                print(f'ERROR: {key} is missing the "module" keyword.')
+                logger.error(f'{key} is missing the "module" keyword. Config is ignored')
                 continue
 
             modname, classname = cfg['module'].rsplit('.',1)

@@ -12,6 +12,9 @@ import itertools
 import numpy as np
 from .. import misc
 
+import logging
+logger = logging.getLogger(__name__)
+
 import os
 
 def _sanitize_value_string(v) -> str:
@@ -67,6 +70,8 @@ class Aggregator():
     PROVIDES=[]
 
     def __init__(self, cache_dir: os.PathLike, name: str):
+        logger.debug(f"{name}: init")
+
         self._needed_variables = []
         self._cache_dir = cache_dir
         self._name = name
@@ -76,6 +81,7 @@ class Aggregator():
 
     def load_config(self, *args, **kwargs) -> None:
         self._load_config(*args, **kwargs)
+        logger.debug(f"{self._name}: config loaded")
 
     def add_needed(self, var: Variable) -> None:
         if var not in self.PROVIDES:
@@ -85,6 +91,7 @@ class Aggregator():
 
     def aggregate(self) -> None:
         self._aggregate()
+        logger.debug(f"{self._name}: aggregation complete")
 
     def query_data(self, var: Variable, query: list[tuple[Variable,object]]) -> xr.DataArray:
         return self._query_data(var,query)
@@ -94,7 +101,7 @@ class Aggregator():
 
     'Functions to implement'
     def _init(self):
-        pass
+        logger.debug(f"{self._name} does not define _init()")
 
     def _load_config(self, *args, **kwargs) -> None:
         raise AggregatorNotImplementedException('_load_config() not implemented')
