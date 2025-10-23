@@ -54,8 +54,8 @@ class Index:
             display_name = view_chain[last_chain]['query']['time']
             list_title = "Time"
         else:
-            print('what?')
-            print(view_chain)
+            logger.error("Index - undefined state")
+            logger.error(view_chain)
 
         if sub_name not in self._sub_indices:
             self._sub_indices[sub_name] = []
@@ -125,6 +125,7 @@ class Manager:
         needed = {}
 
         for key in self.plotters:
+            logger.debug(f"Building requirements list for plotter {key}")
             plt = self.plotters[key]['object']
             cfg = self.plotters[key]['config']
 
@@ -140,10 +141,13 @@ class Manager:
             needed[agg].extend(plt.report_needed_variables())
 
         for key in self.aggregators:
+            logger.debug(f"Aggregator {key} collecting data")
             agg = self.aggregators[key]
             for n in needed[key]:
                 agg.add_needed(n)
             agg.aggregate()
+
+        logger.info("Aggregation finished")
 
     def _aggregator_callback(self, caller_name: str):
         if caller_name not in self.plotters:
