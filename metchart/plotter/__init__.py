@@ -1,6 +1,8 @@
 '''
 Plotter base class
 '''
+import logging
+logger = logging.getLogger(__name__)
 
 from collections.abc import Callable
 from ..aggregator import Variable, DataView
@@ -19,15 +21,19 @@ class Plotter:
         self._cache_dir = cache_dir
         self._output_dir = output_dir
         self._init()
+        logger.debug(f"{self._name}: init")
 
     def load_config(self, *args, **kwargs) -> None:
         self._load_config(*args, **kwargs)
+        logger.debug(f"{self._name}: config loaded")
 
     # TODO we could maybe do this in load_config?
     def report_needed_variables(self) -> list[Variable]:
+        logger.debug(f"{self._name}: collecting needed variables")
         return self._report_needed_variables()
 
     def plot(self, view: DataView, filename_prefix: str) -> str:
+        logger.debug(f"{self._name}: plotting")
         return self._plot(view, filename_prefix)
 
     def _init(self):
@@ -48,12 +54,11 @@ class Plotter:
 
 class DebugPlotter(Plotter):
     def _load_config(self, **kwargs):
-        print(kwargs)
         self._cfg = kwargs
 
     def _report_needed_variables(self) -> list[Variable]:
-        return [Variable.U_SURFACE, Variable.V_SURFACE]
+        return []
 
     def _plot(self, view, filename_prefix: str) -> str:
-        print(view)
+        print(view.get())
         return ''

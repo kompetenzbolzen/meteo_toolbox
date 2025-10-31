@@ -13,6 +13,9 @@ from multiprocessing.pool import ThreadPool
 
 import xarray as xr
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .. import misc
 from ..aggregator import Aggregator, Variable, Dimension
 
@@ -119,6 +122,8 @@ class IconAggregator(Aggregator):
         self._run, self._date = get_current_run()
         filelist = self._list_needed_files()
 
+        logger.debug(f"Getting data for {self._date} - {self._run}")
+
         for _ in ThreadPool(cpu_count()).map(download_url, filelist):
             pass
 
@@ -127,6 +132,7 @@ class IconAggregator(Aggregator):
                 'decode_timedelta': False,
         }
 
+        logger.debug("data loading...")
         # TODO bit ugly, eh?
         ds_vars = []
         for var in self._needed_variables:
@@ -163,6 +169,8 @@ class IconAggregator(Aggregator):
             { v: k for k, v in self._DIM_MAPPING.items() if v in self._dataset }
         )
 
+        logger.debug("Completed data loading")
+
     def _list_needed_files(self) -> list:
         filelist = []
 
@@ -194,11 +202,11 @@ class IconAggregator(Aggregator):
 
 
     def _query_data(self, var: Variable, query: list[tuple[Variable,object]]) -> xr.DataArray:
-        print("Not Implemented")
+        logger.error("_query_data not defined. returning empty (why?)")
         return xr.DataArray()
 
     def _query_dimensions(self, var: Variable) -> list[Dimension]:
-        print("Not Implemented")
+        logger.error("_query_dimensions not defined. returning empty (why?)")
         return []
 
 def get_current_run():
@@ -218,15 +226,16 @@ def download_url(args):
 
     r = requests.get(url)
     if not r.ok:
-        print(f'Failed Request to download {dest}:\n')
-        print(f'URL {url}, {dest}:\n')
+        logger.error(f'Failed Request to download {dest}:\n')
+        logger.error(f'URL {url}, {dest}:\n')
         return
     try:
         with open(dest, 'wb') as f:
             f.write(bz2.decompress(r.content))
-        print(f'Downloaded {dest}')
+        logger.debug(f'Downloaded {dest}')
     except Exception as e:
-        print(f'Failed to download {dest}:\n', e)
+        logger.error(f'Failed to download {dest}:\n', e)
+
 
 def clean_output_dir(directory, target):
     to_delete = [f for f  in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
