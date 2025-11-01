@@ -79,12 +79,14 @@ class Aggregator():
         self._dataset = None
         self._init()
 
+        self._provides_dynamic = []
+
     def load_config(self, *args, **kwargs) -> None:
         self._load_config(*args, **kwargs)
         logger.debug(f"{self._name}: config loaded")
 
     def add_needed(self, var: Variable) -> None:
-        if var not in self.PROVIDES:
+        if var not in self.PROVIDES and var not in self._provides_dynamic:
             raise AggregatorDoesNotProvideVariableException(f'{var} is not provided')
         if var not in self._needed_variables:
             self._needed_variables.append(var)

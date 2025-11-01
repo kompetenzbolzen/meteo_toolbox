@@ -53,11 +53,15 @@ class Plotter:
         raise PlotterNotImplementedException('_plot()')
 
 class DebugPlotter(Plotter):
-    def _load_config(self, **kwargs):
+    def _load_config(self, needed: list[str] = [],  **kwargs):
         self._cfg = kwargs
+        self._needed = needed
+
+        logger.debug(f'DebugPlotter: unused Config: {self._cfg}')
+        logger.debug(f'DebugPlotter: needs {self._needed}')
 
     def _report_needed_variables(self) -> list[Variable]:
-        return []
+        return [ Variable(v) for v in self._needed ]
 
     def _plot(self, view, filename_prefix: str) -> str:
         print(view.get())
