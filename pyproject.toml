@@ -7,6 +7,7 @@ dependencies = [
 	"cfgrib",
 	"pyyaml",
 	"cartopy",
+	"netCDF4"
 ]
 description = "declarative weather chart plotter"
 readme = "Readme.md"
