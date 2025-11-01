@@ -129,6 +129,7 @@ class Manager:
             cfg = self.plotters[key]['config']
 
             if 'aggregator' not in cfg:
+                logger.error(f'plotter {key} does not have an aggregator configured')
                 continue
             agg = cfg['aggregator']
             if agg not in self.aggregators:
