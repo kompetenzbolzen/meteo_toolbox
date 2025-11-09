@@ -8,6 +8,9 @@ import xarray as xr
 
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+
 from metpy.units import units
 import metpy.calc as mpcalc
 
@@ -32,6 +35,7 @@ class WyomingSoundingAggregator(Aggregator):
         self._hour, self._date = get_current_run()
         #self._stations = stations
         self._station = station
+        logger.debug(f"Configured station {self._station}")
 
     def _aggregate(self) -> None:
         #dss = []
@@ -54,12 +58,14 @@ def download_wyoming_csv(station, date, hour, target):
     url=f'http://weather.uwyo.edu/cgi-bin/bufrraob.py?datetime={date}%20{hour}&id={station}&type=TEXT:CSV'
     result = requests.get(url)
 
-    if result.status_code >= 400:
+    if not result.ok:
         # TODO Error handling
+        logger.error(f"Donwloading {url} failed with {result.status_code}")
         raise Exception('Failed to Download sounding csv!')
 
     with open(target, 'w') as f:
         f.write(result.text)
+    logger.debug(f"Downloaded f{target}")
 
 def load_wyoming_csv(filepath, hour, date, station):
     p = []
