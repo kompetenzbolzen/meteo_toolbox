@@ -196,6 +196,7 @@ class Manager:
 
         self.aggregators[name] = module(self._cache_dir, name)
         self.aggregators[name].load_config(**cfg)
+        logger.debug(f"{module} loaded as aggregator {name}")
 
     def _prepare_plotter(self, name, module, cfg):
         self.plotters[name] = {
@@ -209,8 +210,10 @@ class Manager:
             cfg['config'] = {}
 
         self.plotters[name]['object'].load_config(**cfg['config'])
+        logger.debug(f"{module} loaded as plotter {name}")
 
     def _parse_output(self, data: str):
         self._output_dir = data
     def _parse_thread_count(self, data: int):
+        logger.warning("thread_count is set but will not be used.")
         self._thread_count = data
